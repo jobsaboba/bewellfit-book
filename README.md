@@ -7,6 +7,8 @@ to the request email to confirm the place.
 There is no payment step and no client login. The app is a static PWA — it can
 be hosted on GitHub Pages, Netlify, Cloudflare Pages or any ordinary web host.
 
+**Live app:** <https://jobsaboba.github.io/bewellfit-book/>
+
 ## How it works
 
 1. The client picks a class from the timetable data.
@@ -24,12 +26,13 @@ silently lost.
 
 ## Before going live — checklist
 
-- [ ] Confirm `bewellfit@gmx.com` is the right fallback/contact address.
-- [ ] Confirm the owner recipient configured in Contact Form 7 form 503.
-- [ ] With the owner's approval, send one real test booking and check that it
-      arrives, then reply to confirm.
-- [ ] Decide the final address: GitHub Pages link, `book.bewellfit.org`, or a
-      page on the WordPress site (the last two need DNS/WordPress access).
+- [x] Confirm `bewellfit@gmx.com` is the right fallback/contact address.
+- [x] Confirm the owner recipient configured in Contact Form 7 form 503.
+- [x] Publish an interim version on GitHub Pages.
+- [ ] The owner sends the first real test booking and replies to confirm.
+- [ ] Decide the final address: keep the GitHub Pages link, move to
+      `book.bewellfit.org`, or add a page on the WordPress site (the last two
+      need DNS/WordPress access).
 - [ ] Update `sw.js` cache version when deploying changes.
 
 > Contact Form 7 submissions send a real email. Do not use a live booking as a
