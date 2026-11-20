@@ -1174,36 +1174,6 @@ h1, h2, h3 {
   color: var(--teal-dark);
 }
 .form-note strong { color: var(--ink); }
-.form-error {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  padding: 12px;
-  margin: 0 0 13px;
-  border: 1px solid #f0c7c2;
-  border-radius: 14px;
-  background: var(--danger-soft);
-  color: #7c332d;
-  font-size: 12px;
-  line-height: 1.45;
-}
-.form-error .icon { width: 17px; height: 17px; flex: none; margin-top: 1px; }
-.form-error strong {
-  display: block;
-  margin-bottom: 2px;
-  font-size: 12.5px;
-  font-weight: 800;
-}
-.form-error p { margin: 0; }
-.form-error-actions { margin-top: 5px !important; }
-.form-error a { color: #7c332d; font-weight: 800; }
-.form-alt {
-  margin: 11px 4px 0;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.45;
-  text-align: center;
-}
 .link-button {
   padding: 0;
   border: 0;
@@ -1227,16 +1197,6 @@ h1, h2, h3 {
   line-height: 1.45;
   text-align: center;
 }
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
 /* --------------------------------------------------------------------------
    Success
    -------------------------------------------------------------------------- */

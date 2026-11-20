@@ -1,6 +1,6 @@
 /* Be Well Fit — class booking app
-   Static client: browses the timetable and sends booking requests through the
-   studio's existing Contact Form 7 form. No API keys or backend required. */
+   Static client: browses the timetable and opens the visitor's email app with
+   a pre-filled booking request. No API keys, server or backend required. */
 (function () {
   "use strict";
 
@@ -9,7 +9,7 @@
   var CLASS_INFO = window.BWF_CLASS_INFO || {};
   var SLOTS = window.BWF_SLOTS || [];
   var UPDATED = window.BWF_UPDATED || "";
-  var APP_VERSION = "5";
+  var APP_VERSION = "6";
   var MAX_WEEKS = 8;
   var LEAD_TIME = 60 * 60 * 1000;
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -68,7 +68,7 @@
     selectedDate: null,
     slot: null,
     request: null,
-    submitting: false,
+    emailPending: false,
     history: [],
     ttDay: null
   };
@@ -80,9 +80,6 @@
     return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
     });
-  }
-  function stripTags(value) {
-    return String(value == null ? "" : value).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   }
   function svgIcon(id, extraClass) {
     return '<svg class="icon' + (extraClass ? " " + extraClass : "") + '" aria-hidden="true"><use href="#' + id + '"></use></svg>';
@@ -522,7 +519,6 @@
       '<form id="booking-form" class="form-card" novalidate>' +
         '<h2>Your details</h2>' +
         '<p class="form-intro">We only use these to arrange your class.</p>' +
-        '<div id="form-error-slot"></div>' +
         '<div class="field-row">' +
           '<div class="field" data-field="firstName">' +
             '<label for="first-name">First name</label>' +
@@ -550,12 +546,20 @@
           '<span class="remember-copy"><strong>Remember me on this phone</strong><span>Your name and email will be filled in next time. Saved only on this device.</span></span>' +
         '</label>' +
         '<div class="form-note">' + svgIcon("i-mail") +
-          '<span><strong>This is a booking request.</strong> The team will reply to confirm your place. No payment is taken in this app.</span>' +
+          '<span><strong>This is a booking request.</strong> Your email app will open with the details — press Send there. No payment is taken in this app.</span>' +
         '</div>' +
         '<button class="btn btn-primary btn-block" type="submit">' + svgIcon("i-mail") + 'Send booking request</button>' +
-        '<p class="form-alt">Prefer your own email app? <button type="button" class="link-button" data-action="email-direct">Send from my email app</button></p>' +
         '<p class="form-footnote">Your place is confirmed when the team replies by email.</p>' +
       '</form>';
+  }
+
+  function bookingSummaryHTML(cls, slot) {
+    return '<div class="success-summary" aria-label="Booking request summary">' +
+      '<div class="success-row"><span>Class</span><span>' + esc(cls.name) + '</span></div>' +
+      '<div class="success-row"><span>Day</span><span>' + esc(fmtDateFull(slot.date)) + '</span></div>' +
+      '<div class="success-row"><span>Time</span><span>' + esc(fmtTime(slot.time)) + '</span></div>' +
+      '<div class="success-row"><span>Studio</span><span>Studio ' + slot.studio + '</span></div>' +
+    '</div>';
   }
 
   function step4HTML() {
@@ -563,17 +567,30 @@
     var slot = state.slot;
     var request = state.request || {};
     if (!cls || !slot) return step1HTML();
+    var contact = CFG.contactEmail || "bewellfit@gmx.com";
+    var summary = bookingSummaryHTML(cls, slot);
+
+    if (state.emailPending) {
+      return '<section class="success-wrap">' +
+        '<div class="success-badge">' + svgIcon("i-mail") + '</div>' +
+        '<h1>Press Send in your email app</h1>' +
+        '<p class="success-lead">Your email app should have opened with your request for <strong>' + esc(cls.name) + '</strong>. Press <strong>Send</strong> there and the team will get it.</p>' +
+        summary +
+        '<div class="success-next"><strong>Didn’t see your email app?</strong><br>Tap <strong>Open my email app</strong> below. If you don’t have email set up on this phone, email <a href="mailto:' + esc(contact) + '">' + esc(contact) + '</a> instead.</div>' +
+        '<div class="success-actions">' +
+          '<a class="btn btn-primary btn-block" href="' + esc(buildMailto(request)) + '">' + svgIcon("i-mail") + 'Open my email app</a>' +
+          '<button type="button" class="btn btn-ghost btn-block" data-action="email-sent">' + svgIcon("i-check") + 'I’ve sent the email</button>' +
+        '</div>' +
+        '<p class="success-help">No email app? <button type="button" class="link-button" data-action="email-copy">Copy the request details</button> and send them to ' + esc(contact) + '.</p>' +
+      '</section>';
+    }
+
     return '<section class="success-wrap">' +
       '<div class="success-badge">' + svgIcon("i-check") + '</div>' +
       '<h1>Request sent!</h1>' +
-      '<p class="success-lead">We’ve emailed your request to the Be Well Fit team. They’ll reply to <strong>' + esc(request.email || "your email") + '</strong> to confirm your place.</p>' +
-      '<div class="success-summary" aria-label="Booking request summary">' +
-        '<div class="success-row"><span>Class</span><span>' + esc(cls.name) + '</span></div>' +
-        '<div class="success-row"><span>Day</span><span>' + esc(fmtDateFull(slot.date)) + '</span></div>' +
-        '<div class="success-row"><span>Time</span><span>' + esc(fmtTime(slot.time)) + '</span></div>' +
-        '<div class="success-row"><span>Studio</span><span>Studio ' + slot.studio + '</span></div>' +
-      '</div>' +
-      '<div class="success-next"><strong>What happens next</strong><br>Keep an eye on your inbox. If you don’t hear back within 24 hours, email <a href="mailto:' + esc(CFG.contactEmail) + '">' + esc(CFG.contactEmail) + '</a> so your request isn’t missed.</div>' +
+      '<p class="success-lead">Your booking email is on its way to the Be Well Fit team. They’ll reply to <strong>' + esc(request.email || "your email") + '</strong> to confirm your place.</p>' +
+      summary +
+      '<div class="success-next"><strong>What happens next</strong><br>Keep an eye on your inbox. If you don’t hear back within 24 hours, email <a href="mailto:' + esc(contact) + '">' + esc(contact) + '</a> so your request isn’t missed.</div>' +
       '<div class="success-actions">' +
         '<button type="button" class="btn btn-primary btn-block" data-action="book-again">Book another class</button>' +
         '<button type="button" class="btn btn-ghost btn-block" data-action="view-timetable">View timetable</button>' +
@@ -715,7 +732,11 @@
   function stepAnnouncement() {
     if (state.step === 2) return state.className ? "Choose a day and time for " + state.className + "." : "Choose a day and time.";
     if (state.step === 3) return "Enter your details and send the booking request.";
-    if (state.step === 4) return "Booking request sent. The team will reply by email to confirm.";
+    if (state.step === 4) {
+      return state.emailPending
+        ? "Your email app should open. Press Send there to request your place."
+        : "Booking request emailed. The team will reply by email to confirm.";
+    }
     return "Choose a class.";
   }
 
@@ -730,10 +751,6 @@
   function switchTab(name, opts) {
     opts = opts || {};
     if (["book", "timetable", "info"].indexOf(name) === -1) name = "book";
-    if (state.submitting) {
-      showToast("Sending your request…");
-      return;
-    }
     state.tab = name;
     Object.keys(els.views).forEach(function (key) {
       if (els.views[key]) els.views[key].hidden = key !== name;
@@ -845,6 +862,7 @@
     state.selectedDate = null;
     state.slot = null;
     state.request = null;
+    state.emailPending = false;
     state.category = "all";
     state.query = "";
     renderBook({ scroll: true, focus: true });
@@ -870,18 +888,8 @@
   }
 
   /* -----------------------------------------------------------------------
-     Booking submit
+     Booking request by email
      ----------------------------------------------------------------------- */
-  function BookingError(code, message, fieldErrors) {
-    this.name = "BookingError";
-    this.code = code;
-    this.message = message;
-    this.fieldErrors = fieldErrors || null;
-    if (Error.captureStackTrace) Error.captureStackTrace(this, BookingError);
-  }
-  BookingError.prototype = Object.create(Error.prototype);
-  BookingError.prototype.constructor = BookingError;
-
   function validateRequest(data) {
     var errors = {};
     if (!data.firstName) errors.firstName = "Please enter your first name.";
@@ -931,123 +939,77 @@
     }
   }
 
-  function mapCf7Errors(result) {
-    var map = { "first-name": "firstName", "last-name": "lastName", "your-email": "email" };
-    var out = {};
-    (result.invalid_fields || []).forEach(function (field) {
-      if (map[field.field]) out[map[field.field]] = stripTags(field.message) || "Please check this field.";
-    });
-    return Object.keys(out).length ? out : null;
+  function requestSubject() {
+    return "Class booking request – " + state.className + " – " + fmtDayShort(state.slot.date);
   }
 
-  function buildPayload(data) {
-    if (!CFG.bookingEndpoint) throw new BookingError("config", "The booking service isn’t configured.");
-    var when = fmtDateFull(state.slot.date) + " at " + fmtTime(state.slot.time) + " (Studio " + state.slot.studio + ")";
-    var notes = [
-      "Reply directly to " + data.firstName + " " + data.lastName + " <" + data.email + ">",
-      data.notes.trim(),
-      "Sent from the Be Well Fit app."
-    ].filter(Boolean).join("\n\n");
-    var formData = new FormData();
-    formData.append("_wpcf7", CFG.bookingFormId || "503");
-    formData.append("_wpcf7_version", CFG.bookingFormVersion || "6.2.4.1");
-    formData.append("_wpcf7_locale", CFG.bookingLocale || "en_US");
-    formData.append("_wpcf7_unit_tag", CFG.bookingUnitTag || "wpcf7-f503-p93-o1");
-    formData.append("_wpcf7_container_post", CFG.bookingContainerPost || "93");
-    formData.append("_wpcf7_posted_data_hash", "");
-    formData.append("first-name", data.firstName);
-    formData.append("last-name", data.lastName);
-    formData.append("your-email", data.email);
-    formData.append("class-booking", state.className);
-    formData.append("class-time-date", when);
-    formData.append("other-enquiries", notes);
-    return formData;
-  }
-
-  function buildMailto(data) {
-    var subject = "Class booking request – " + state.className + " – " + fmtDayShort(state.slot.date);
-    var body = [
+  function requestBody(data) {
+    var lines = [
       "Hi Be Well Fit,",
       "",
       "I'd like to book " + state.className + " on " + fmtDateFull(state.slot.date) + " at " + fmtTime(state.slot.time) + ", Studio " + state.slot.studio + ".",
       "",
       "Name: " + data.firstName + " " + data.lastName,
-      "Email: " + data.email,
-      data.notes.trim() ? "Notes: " + data.notes.trim() : "",
-      "",
-      "Please reply to confirm my place.",
-      "",
-      "Sent from the Be Well Fit app."
-    ].filter(function (line) { return line !== ""; }).join("\n");
-    return "mailto:" + (CFG.contactEmail || "bewellfit@gmx.com") + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+      "Email: " + data.email
+    ];
+    if (data.notes.trim()) lines.push("Notes: " + data.notes.trim());
+    lines.push("", "Please reply to confirm my place.", "", "Sent from the Be Well Fit app.");
+    return lines.join("\n");
   }
 
-  function openDirectEmail() {
-    var form = $("#booking-form");
-    var data = { firstName: "", lastName: "", email: "", notes: "" };
-    if (form) {
-      var formData = new FormData(form);
-      data.firstName = String(formData.get("firstName") || "").trim();
-      data.lastName = String(formData.get("lastName") || "").trim();
-      data.email = String(formData.get("email") || "").trim();
-      data.notes = String(formData.get("notes") || "").trim();
-      if (formData.get("remember") === "yes") saveDetails(data);
-      else clearSavedDetails();
-    }
+  function buildMailto(data) {
+    return "mailto:" + (CFG.contactEmail || "bewellfit@gmx.com") +
+      "?subject=" + encodeURIComponent(requestSubject()) +
+      "&body=" + encodeURIComponent(requestBody(data));
+  }
+
+  function requestText(data) {
+    return "To: " + (CFG.contactEmail || "bewellfit@gmx.com") + "\n" +
+      "Subject: " + requestSubject() + "\n\n" + requestBody(data);
+  }
+
+  function launchEmail(data) {
     try {
       window.location.href = buildMailto(data);
+      return true;
     } catch (err) {
       showToast("Your email app couldn’t be opened. Email " + (CFG.contactEmail || "bewellfit@gmx.com") + " directly.");
+      return false;
     }
   }
 
-  function showFormError(form, error, data) {
-    var slot = $("#form-error-slot", form);
-    if (!slot) return;
-    var title = error.code === "offline" ? "You’re offline" : error.code === "timeout" ? "Request timed out" : "Request not sent";
-    var mailto = "";
-    try { mailto = buildMailto(data); } catch (err) { mailto = "mailto:" + (CFG.contactEmail || "bewellfit@gmx.com"); }
-    slot.innerHTML = '<div class="form-error" role="alert">' +
-      svgIcon("i-alert") +
-      '<div>' +
-        '<strong>' + esc(title) + '</strong>' +
-        '<p>' + esc(error.message) + '</p>' +
-        '<p class="form-error-actions">You can <a href="' + esc(mailto) + '">email the team instead</a> — your details will be filled in for you.</p>' +
-      '</div>' +
-    '</div>';
-    var panel = $(".form-error", slot);
-    if (panel) {
-      try { panel.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" }); } catch (err) { /* old Safari */ }
-    }
-  }
-
-  function setSubmitting(form, submitting) {
-    var button = $('button[type="submit"]', form);
-    if (!button) return;
-    if (submitting) {
-      button.dataset.originalHtml = button.innerHTML;
-      button.disabled = true;
-      button.innerHTML = '<span class="spinner" aria-hidden="true"></span> Sending request…';
-      form.setAttribute("aria-busy", "true");
-    } else {
-      button.disabled = false;
-      if (button.dataset.originalHtml) button.innerHTML = button.dataset.originalHtml;
-      delete button.dataset.originalHtml;
-      form.removeAttribute("aria-busy");
-    }
-  }
-
-  function onBookingSent(data) {
-    state.submitting = false;
+  function startEmailRequest(data) {
     state.request = data;
-    saveHistory();
+    state.emailPending = true;
     state.step = 4;
     switchTab("book", { scroll: true, focus: true });
     announce(stepAnnouncement());
+    launchEmail(data);
   }
 
-  async function submitBooking(form) {
-    if (state.submitting) return;
+  function confirmEmailSent() {
+    if (!state.emailPending) return;
+    state.emailPending = false;
+    saveHistory();
+    renderBook({ scroll: true, focus: true });
+    announce(stepAnnouncement());
+  }
+
+  function copyEmailRequest() {
+    if (!state.request) return;
+    var email = CFG.contactEmail || "bewellfit@gmx.com";
+    if (!navigator.clipboard || !navigator.clipboard.writeText) {
+      showToast("Please email " + email + " directly.");
+      return;
+    }
+    navigator.clipboard.writeText(requestText(state.request)).then(function () {
+      showToast("Request copied. Paste it into an email to " + email + ".");
+    }, function () {
+      showToast("Couldn’t copy the request. Please email " + email + " directly.");
+    });
+  }
+
+  function submitBooking(form) {
     var formData = new FormData(form);
     var data = {
       firstName: String(formData.get("firstName") || "").trim(),
@@ -1066,63 +1028,7 @@
     if (formData.get("remember") === "yes") saveDetails(data);
     else clearSavedDetails();
 
-    state.submitting = true;
-    setSubmitting(form, true);
-    var errorSlot = $("#form-error-slot", form);
-    if (errorSlot) errorSlot.innerHTML = "";
-    var timer = null;
-
-    try {
-      if (!navigator.onLine) {
-        throw new BookingError("offline", "You’re offline, so your request hasn’t been sent. Reconnect and try again, or email the team.");
-      }
-      var controller = new AbortController();
-      timer = window.setTimeout(function () { controller.abort(); }, 20000);
-      var response = await fetch(CFG.bookingEndpoint, {
-        method: "POST",
-        body: buildPayload(data),
-        headers: { Accept: "application/json" },
-        signal: controller.signal
-      });
-
-      var result = null;
-      try { result = await response.json(); } catch (err) { result = null; }
-
-      if (result && result.status === "mail_sent") {
-        onBookingSent(data);
-        return;
-      }
-      if (result && result.status === "validation_failed") {
-        throw new BookingError("validation", "Some details weren’t accepted. Check the highlighted fields and try again.", mapCf7Errors(result));
-      }
-      if (result && result.status === "spam") {
-        throw new BookingError("spam", "The booking service flagged this request. Please email the team directly so your request isn’t missed.");
-      }
-      if (result && result.status === "mail_failed") {
-        throw new BookingError("mail", "The booking email couldn’t be sent. Please email the team directly so your request isn’t missed.");
-      }
-      if (!response.ok) {
-        throw new BookingError("http", "The booking service returned an error (" + response.status + "). Please email the team directly.");
-      }
-      if (result && result.message) {
-        throw new BookingError("unknown", stripTags(result.message));
-      }
-      throw new BookingError("unknown", "The booking service didn’t confirm the request. Please try again or email the team.");
-    } catch (err) {
-      if (err && err.name === "AbortError") {
-        err = new BookingError("timeout", "The booking service took too long to respond. Please try again or email the team.");
-      }
-      var error = err instanceof BookingError ? err : new BookingError("network", "We couldn’t reach the booking service. Check your connection and try again, or email the team.");
-      state.submitting = false;
-      if (form.isConnected) {
-        setSubmitting(form, false);
-        if (error.fieldErrors) applyFieldErrors(error.fieldErrors);
-        showFormError(form, error, data);
-        announce(error.code === "validation" ? "Please check the highlighted fields." : "The request wasn’t sent. " + error.message);
-      }
-    } finally {
-      if (timer) window.clearTimeout(timer);
-    }
+    startEmailRequest(data);
   }
 
   /* -----------------------------------------------------------------------
@@ -1170,8 +1076,10 @@
       resetBooking();
     } else if (action === "view-timetable") {
       switchTab("timetable", { scroll: true, focus: true });
-    } else if (action === "email-direct") {
-      openDirectEmail();
+    } else if (action === "email-sent") {
+      confirmEmailSent();
+    } else if (action === "email-copy") {
+      copyEmailRequest();
     }
   }
 
@@ -1192,8 +1100,6 @@
     if (state.step === 3 && input.name && ["firstName", "lastName", "email", "notes"].indexOf(input.name) !== -1) {
       state.request = Object.assign({}, state.request || {}, { [input.name]: input.value });
       if (input.closest(".field.has-error")) clearFieldError(input);
-      var errorSlot = $("#form-error-slot", els.bookFlow);
-      if (errorSlot) errorSlot.innerHTML = "";
     }
   }
 

@@ -14,32 +14,23 @@ be hosted on GitHub Pages, Netlify, Cloudflare Pages or any ordinary web host.
 1. The client picks a class from the timetable data.
 2. They pick a highlighted day and then a time.
 3. They enter their name, email and an optional note.
-4. The app posts those details to the studio's existing Contact Form 7 form
-   (`form 503`) on bewellfit.org. WordPress emails the booking to whichever
-   address is configured for that form.
-5. The client sees a "Request sent" screen. The team replies to the client's
-   email to confirm the booking.
+4. They press **Send booking request**. The app opens their own email app with
+   a message to **bewellfit@gmx.com** already filled in: class, date, time,
+   studio, name and reply address.
+5. They press **Send** in the email app, then tap **I’ve sent the email** in the
+   app. The team replies to the client's email to confirm the booking.
 
-If the request cannot be sent, the app offers an `mailto:` fallback to
-**bewellfit@gmx.com** with all the details pre-filled, so a booking is never
-silently lost. The details form also has a **Send from my email app** option,
-which opens the same pre-filled message from the client's own email address.
+The app does not send email itself, so there is no Contact Form 7 dependency
+and no server or API key to maintain. The message comes from the client's own
+address, which means the team can simply press **Reply**.
 
-The app sends the client's name and email to form 503, and the booking note
-starts with **Reply directly to …**. To make the owner's Reply button go
-straight to the client, set the form's **Additional headers** in Contact Form 7
-→ Mail to:
-
-```text
-Reply-To: [your-email]
-```
-
-That setting lives in WordPress; the app cannot change email headers itself.
+If the email app doesn't open, the confirmation screen offers **Open my email
+app**, **Copy the request details**, and the studio's direct email address, so a
+booking is never silently lost.
 
 ## Before going live — checklist
 
-- [x] Confirm `bewellfit@gmx.com` is the right fallback/contact address.
-- [x] Confirm the owner recipient configured in Contact Form 7 form 503.
+- [x] Confirm `bewellfit@gmx.com` is the right booking/contact address.
 - [x] Publish an interim version on GitHub Pages.
 - [ ] The owner sends the first real test booking and replies to confirm.
 - [ ] Decide the final address: keep the GitHub Pages link, move to
@@ -48,8 +39,8 @@ That setting lives in WordPress; the app cannot change email headers itself.
 - [ ] Bump the app version when deploying changes — see **Versioning and
       backups** below.
 
-> Contact Form 7 submissions send a real email. Do not use a live booking as a
-> casual test without the owner's agreement.
+> A live booking sends a real email from the tester's own email app. Use the
+> owner's own address for the first test.
 
 ## Files
 
@@ -57,7 +48,7 @@ That setting lives in WordPress; the app cannot change email headers itself.
 | --- | --- |
 | `index.html` | App shell, navigation, Info page and SVG icons |
 | `styles.css` | Complete visual design and responsive layout |
-| `app.js` | Booking flow, timetable, form submission and PWA UI |
+| `app.js` | Booking flow, timetable, email request and PWA UI |
 | `data.js` | **The timetable, class descriptions, and app configuration** |
 | `manifest.webmanifest` | Install metadata |
 | `sw.js` | Offline cache |
@@ -79,7 +70,7 @@ Everything timetable-related lives in `data.js`:
 After editing, bump the app version so installed phones pick up the new data.
 Change the number in these places:
 
-- `CACHE` in `sw.js` (for example `bewellfit-v5`).
+- `CACHE` in `sw.js` (for example `bewellfit-v6`).
 - The `?v=` on `styles.css`, `data.js` and `app.js` in `index.html`.
 - The same three `?v=` entries, plus `manifest.webmanifest?v=`, in the `SHELL`
   list in `sw.js`.
@@ -116,16 +107,10 @@ afterwards.
 
 `BWF_CONFIG` at the top of `data.js` contains:
 
-- `bookingEndpoint` — the Contact Form 7 REST endpoint.
-- `bookingFormId`, `bookingUnitTag`, `bookingContainerPost`,
-  `bookingFormVersion`, `bookingLocale` — hidden fields from the existing form.
-- `contactEmail` — used by the Info page and the mail-to fallback.
+- `contactEmail` — the address that booking and contact links use.
 - `address`, `mapsUrl`, `siteUrl` — shown on the Info page.
 
-The app posts these fields to CF7:
-
-`first-name`, `last-name`, `your-email`, `class-booking`,
-`class-time-date`, `other-enquiries`
+To change where bookings go, edit `contactEmail` and bump the app version.
 
 ## Run locally
 
@@ -164,7 +149,8 @@ the bewellfit.org DNS.
 ## Privacy and behaviour notes
 
 - Booking details are only stored in the browser for the "Your requests"
-  history (localStorage). They are not sent anywhere except the booking form.
+  history (localStorage). They leave the device only when the client presses
+  Send in their own email app.
 - If the client ticks **Remember me on this phone**, their first name, last
   name and email are saved in localStorage on that device and pre-filled next
   time. Unticking the box removes them. Nothing is stored on a server.

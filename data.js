@@ -13,14 +13,7 @@ window.BWF_CONFIG = {
   siteUrl: "https://bewellfit.org",
   contactEmail: "bewellfit@gmx.com",
   address: "Bewellfit, Clifton Rd, Hastings TN34 2AA",
-  mapsUrl: "https://maps.google.com/?q=Bewellfit,+Clifton+Rd,+Hastings+TN34+2AA",
-  // The studio's existing booking form. It emails the Be Well Fit team.
-  bookingEndpoint: "https://bewellfit.org/wp-json/contact-form-7/v1/contact-forms/503/feedback",
-  bookingFormId: "503",
-  bookingUnitTag: "wpcf7-f503-p93-o1",
-  bookingContainerPost: "93",
-  bookingFormVersion: "6.2.4.1",
-  bookingLocale: "en_US"
+  mapsUrl: "https://maps.google.com/?q=Bewellfit,+Clifton+Rd,+Hastings+TN34+2AA"
 };
 
 window.BWF_CATEGORIES = [
