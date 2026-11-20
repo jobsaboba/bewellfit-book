@@ -1,13 +1,14 @@
 /* Be Well Fit — service worker
-   Bump CACHE when any app shell file changes, so installed phones update. */
-const CACHE = "bewellfit-v3";
+   Bump CACHE here and the ?v= numbers in index.html whenever the app shell
+   changes, so installed phones fetch the new files instead of old cached ones. */
+const CACHE = "bewellfit-v5";
 const SHELL = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app.js",
-  "./data.js",
-  "./manifest.webmanifest",
+  "./styles.css?v=5",
+  "./app.js?v=5",
+  "./data.js?v=5",
+  "./manifest.webmanifest?v=5",
   "./fonts/montserrat-latin.woff2",
   "./fonts/nunito-latin.woff2",
   "./icons/bee.png",
@@ -16,14 +17,21 @@ const SHELL = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
-  "./img/classes/placeholder.webp"
+  "./img/hero.webp"
 ];
+
+async function precache() {
+  const cache = await caches.open(CACHE);
+  await Promise.all(SHELL.map(async (url) => {
+    const response = await fetch(new Request(url, { cache: "reload" }));
+    if (!response || !response.ok) throw new Error("Could not cache " + url);
+    await cache.put(url, response);
+  }));
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE)
-      .then((cache) => cache.addAll(SHELL))
-      .then(() => self.skipWaiting())
+    precache().then(() => self.skipWaiting())
   );
 });
 
@@ -35,6 +43,62 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request, { cache: "no-cache" });
+    if (response && response.ok) {
+      try {
+        const cache = await caches.open(CACHE);
+        await cache.put(request, response.clone());
+      } catch (err) {
+        /* a full cache must not break the page */
+      }
+    }
+    return response;
+  } catch (err) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    if (request.mode === "navigate") {
+      const fallback = await caches.match("./index.html");
+      if (fallback) return fallback;
+    }
+    return Response.error();
+  }
+}
+
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) {
+    /* Show the cached copy now, refresh it quietly for next time. */
+    fetch(request).then(async (response) => {
+      if (response && response.ok) {
+        try {
+          const cache = await caches.open(CACHE);
+          await cache.put(request, response);
+        } catch (err) {
+          /* ignore cache write errors */
+        }
+      }
+    }).catch(() => {});
+    return cached;
+  }
+
+  try {
+    const response = await fetch(request);
+    if (response && response.ok) {
+      try {
+        const cache = await caches.open(CACHE);
+        await cache.put(request, response.clone());
+      } catch (err) {
+        /* ignore cache write errors */
+      }
+    }
+    return response;
+  } catch (err) {
+    return Response.error();
+  }
+}
+
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
@@ -42,35 +106,8 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request, { cache: "reload" })
-        .then((response) => {
-          if (response && response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
-          }
-          return response;
-        })
-        .catch(() =>
-          caches.match(request).then((cached) =>
-            cached || caches.match("./index.html")
-          )
-        )
-    );
-    return;
-  }
+  const alwaysFresh = request.mode === "navigate" ||
+    ["script", "style", "manifest"].indexOf(request.destination) !== -1;
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request).then((response) => {
-        if (response && response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
-        }
-        return response;
-      });
-    })
-  );
+  event.respondWith(alwaysFresh ? networkFirst(request) : cacheFirst(request));
 });

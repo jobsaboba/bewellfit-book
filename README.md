@@ -1,8 +1,8 @@
 # Be Well Fit — class booking app
 
-A simple installable web app for **bewellfit.org**. Clients pick a class photo,
-choose one of its weekly sessions, then send a booking request to the Be Well
-Fit team. The team replies to the request email to confirm the place.
+A simple installable web app for **bewellfit.org**. Clients choose a class, day
+and time, then send a booking request to the Be Well Fit team. The team replies
+to the request email to confirm the place.
 
 There is no payment step and no client login. The app is a static PWA — it can
 be hosted on GitHub Pages, Netlify, Cloudflare Pages or any ordinary web host.
@@ -11,10 +11,8 @@ be hosted on GitHub Pages, Netlify, Cloudflare Pages or any ordinary web host.
 
 ## How it works
 
-1. The client picks a class from the photo tiles.
-2. They see every weekly day, time and studio for that class and tap
-   **Book here** on the session they want. The app chooses the next bookable
-   date for that weekly slot.
+1. The client picks a class from the timetable data.
+2. They pick a highlighted day and then a time.
 3. They enter their name, email and an optional note.
 4. The app posts those details to the studio's existing Contact Form 7 form
    (`form 503`) on bewellfit.org. WordPress emails the booking to whichever
@@ -24,7 +22,19 @@ be hosted on GitHub Pages, Netlify, Cloudflare Pages or any ordinary web host.
 
 If the request cannot be sent, the app offers an `mailto:` fallback to
 **bewellfit@gmx.com** with all the details pre-filled, so a booking is never
-silently lost.
+silently lost. The details form also has a **Send from my email app** option,
+which opens the same pre-filled message from the client's own email address.
+
+The app sends the client's name and email to form 503, and the booking note
+starts with **Reply directly to …**. To make the owner's Reply button go
+straight to the client, set the form's **Additional headers** in Contact Form 7
+→ Mail to:
+
+```text
+Reply-To: [your-email]
+```
+
+That setting lives in WordPress; the app cannot change email headers itself.
 
 ## Before going live — checklist
 
@@ -35,7 +45,8 @@ silently lost.
 - [ ] Decide the final address: keep the GitHub Pages link, move to
       `book.bewellfit.org`, or add a page on the WordPress site (the last two
       need DNS/WordPress access).
-- [ ] Update `sw.js` cache version when deploying changes.
+- [ ] Bump the app version when deploying changes — see **Versioning and
+      backups** below.
 
 > Contact Form 7 submissions send a real email. Do not use a live booking as a
 > casual test without the owner's agreement.
@@ -51,7 +62,7 @@ silently lost.
 | `manifest.webmanifest` | Install metadata |
 | `sw.js` | Offline cache |
 | `icons/` | App icons and bee brand mark |
-| `img/classes/` | Class photos plus `placeholder.webp` for missing images |
+| `img/hero.webp` | Header photograph |
 | `fonts/` | Self-hosted Montserrat and Nunito |
 
 ## Updating the timetable
@@ -62,14 +73,44 @@ Everything timetable-related lives in `data.js`:
   Saturday), 24-hour time, and studio (`1` or `2`).
 - `BWF_CLASS_INFO` — description and categories for each class name. The name
   must match the name used in `BWF_SLOTS`.
-- `BWF_CLASS_IMAGES` — the photo shown for each class. To use a new picture,
-  replace the file in `img/classes/` or change the path here. Any class without
-  an entry falls back to `img/classes/placeholder.webp`.
-- `BWF_CATEGORIES` — class-type tags shown on the session page.
+- `BWF_CATEGORIES` — filter labels shown on the class picker.
 - `BWF_UPDATED` — the "timetable updated" date shown in the app.
 
-After editing, bump `CACHE` in `sw.js` (e.g. `bewellfit-v3`) so installed
-phones pick up the new data.
+After editing, bump the app version so installed phones pick up the new data.
+Change the number in these places:
+
+- `CACHE` in `sw.js` (for example `bewellfit-v5`).
+- The `?v=` on `styles.css`, `data.js` and `app.js` in `index.html`.
+- The same three `?v=` entries, plus `manifest.webmanifest?v=`, in the `SHELL`
+  list in `sw.js`.
+- `APP_VERSION` in `app.js` (shown on the Info page).
+
+Keep them on the same number. The manifest URL only needs to change when the
+manifest itself changes. The versioned URLs make the browser fetch new files
+even if an old service worker is still active. The service worker then replaces
+the old cache and reloads the page once.
+
+## Versioning and backups
+
+The current live design is the original calendar-based booking flow. The
+photo-tile redesign was tried on 20 November 2026 and rolled back.
+
+Git tags keep both versions easy to restore:
+
+| Tag | Design |
+| --- | --- |
+| `pre-photo-tiles` | Original calendar flow (current live version) |
+| `photo-tiles` | Photo-tile redesign, including all class images |
+
+To restore the photo-tile design later:
+
+```sh
+git checkout main
+git revert <revert-commit>
+```
+
+Or merge the `photo-tiles` tag into `main`. Remember to bump the version number
+afterwards.
 
 ## Configuration
 
@@ -123,9 +164,11 @@ the bewellfit.org DNS.
 ## Privacy and behaviour notes
 
 - Booking details are only stored in the browser for the "Your requests"
-  history shown on the Info page (localStorage). They are not sent anywhere
-  except the booking form.
+  history (localStorage). They are not sent anywhere except the booking form.
+- If the client ticks **Remember me on this phone**, their first name, last
+  name and email are saved in localStorage on that device and pre-filled next
+  time. Unticking the box removes them. Nothing is stored on a server.
 - The app does not know whether the owner has confirmed a request; the
   confirmation happens by email.
 - The timetable is a copy of the website's weekly schedule. If the studio
-  changes a class, update `data.js` and bump the service worker cache.
+  changes a class, update `data.js` and bump the app version.
