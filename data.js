@@ -191,6 +191,51 @@ window.BWF_CLASS_INFO = {
   }
 };
 
+/* Class photos shown on the booking screen. To change a picture, replace the
+   file in img/classes/ or point the class at a different image here. Classes
+   without a photo fall back to img/classes/placeholder.webp. */
+window.BWF_CLASS_IMAGES = {
+  "LBT / Step": "img/classes/lbt-step.webp",
+  "Twizt": "img/classes/twizt.webp",
+  "Gentle Yoga": "img/classes/gentle-yoga.webp",
+  "Pilates": "img/classes/pilates.webp",
+  "Senior Circuits": "img/classes/senior-circuits.webp",
+  "Spin": "img/classes/spin.webp",
+  "Step": "img/classes/step.webp",
+  "Pump Pilates": "img/classes/pump-pilates.webp",
+  "Adult Aerial Skills": "img/classes/adult-aerial-skills.webp",
+  "Aerial Skills": "img/classes/aerial-skills.webp",
+  "Cheer Circus": "img/classes/cheer-circus.webp",
+  "Superfly Bungee": "img/classes/superfly-bungee.webp",
+  "Retro Aerobics": "img/classes/retro-aerobics.webp",
+  "Stretch n Flex": "img/classes/stretch-n-flex.webp",
+  "Chair Exercise": "img/classes/chair-exercise.webp",
+  "Drums Alive": "img/classes/drums-alive.webp",
+  "Fitness Hoop": "img/classes/fitness-hoop.webp",
+  "Fitball": "img/classes/fitball.webp",
+  "Boxfit": "img/classes/boxfit.webp",
+  "Rebound": "img/classes/rebound.webp",
+  "Pilates (Fitness)": "img/classes/pilates-fitness.webp",
+  "Kettlebells & Free Weights": "img/classes/kettlebells-free-weights.webp",
+  "Home Ed Aerial Skills": "img/classes/home-ed-aerial-skills.webp",
+  "Aerobics / LBT": "img/classes/aerobics-lbt.webp",
+  "Ab Attack": "img/classes/ab-attack.webp",
+  "Fitness Yoga": "img/classes/fitness-yoga.webp",
+  "Core Stretch": "img/classes/core-stretch.webp",
+  "Weights": "img/classes/weights.webp",
+  "Gymnastics": "img/classes/gymnastics.webp",
+  "LBT Xpress": "img/classes/lbt-xpress.webp",
+  "Vitality Flow": "img/classes/vitality-flow.webp",
+  "Chair Rehab": "img/classes/chair-rehab.webp",
+  "Flexibility FX": "img/classes/flexibility-fx.webp",
+  "Zumba": "img/classes/zumba.webp",
+  "Purestretch": "img/classes/purestretch.webp",
+  "Pilates (For All)": "img/classes/pilates-for-all.webp",
+  "Chair Aerobics": "img/classes/chair-aerobics.webp",
+  "Adult Aerial": "img/classes/adult-aerial.webp",
+  "Open Training Session": "img/classes/open-training-session.webp"
+};
+
 window.BWF_SLOTS = [
   /* Monday */
   { name: "LBT / Step", day: 1, time: "09:15", studio: 1 },

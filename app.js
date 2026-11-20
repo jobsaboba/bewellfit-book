@@ -7,8 +7,10 @@
   var CFG = window.BWF_CONFIG || {};
   var CATEGORIES = window.BWF_CATEGORIES || [];
   var CLASS_INFO = window.BWF_CLASS_INFO || {};
+  var CLASS_IMAGES = window.BWF_CLASS_IMAGES || {};
   var SLOTS = window.BWF_SLOTS || [];
   var UPDATED = window.BWF_UPDATED || "";
+  var PLACEHOLDER_IMAGE = "img/classes/placeholder.webp";
   var MAX_WEEKS = 8;
   var LEAD_TIME = 60 * 60 * 1000;
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -16,18 +18,8 @@
 
   var DAYS_LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   var DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  var WEEK_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   var MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   var MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  var CAT_ICON = {
-    fitness: "i-dumbbell",
-    aerial: "i-hoop",
-    yoga: "i-yoga",
-    dance: "i-note",
-    seniors: "i-chair",
-    kids: "i-star"
-  };
 
   var CAT_BY_ID = {};
   CATEGORIES.forEach(function (cat) { CAT_BY_ID[cat.id] = cat; });
@@ -59,11 +51,7 @@
   var state = {
     tab: "book",
     step: 1,
-    category: "all",
-    query: "",
     className: null,
-    weekStart: null,
-    selectedDate: null,
     slot: null,
     request: null,
     submitting: false,
@@ -91,22 +79,11 @@
   function addDays(date, days) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
   }
-  function startOfWeek(date) {
-    var day = startOfDay(date);
-    var offset = (day.getDay() + 6) % 7; // Monday = 0
-    return addDays(day, -offset);
-  }
   function sameDay(a, b) {
     return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
   }
   function dateKey(date) {
     return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
-  }
-  function parseDateKey(key) {
-    var parts = String(key).split("-").map(Number);
-    if (parts.length !== 3 || parts.some(function (n) { return !isFinite(n); })) return null;
-    var date = new Date(parts[0], parts[1] - 1, parts[2]);
-    return isNaN(date.getTime()) ? null : date;
   }
   function slotStart(date, time) {
     var parts = String(time).split(":").map(Number);
@@ -132,49 +109,25 @@
   function fmtDayShort(date) {
     return DAYS_SHORT[date.getDay()] + " " + date.getDate() + " " + MONTHS_SHORT[date.getMonth()];
   }
-  function fmtWeekRange(weekStart) {
-    var end = addDays(weekStart, 6);
-    if (weekStart.getMonth() === end.getMonth() && weekStart.getFullYear() === end.getFullYear()) {
-      return weekStart.getDate() + " – " + end.getDate() + " " + MONTHS_LONG[end.getMonth()] + " " + end.getFullYear();
-    }
-    return weekStart.getDate() + " " + MONTHS_SHORT[weekStart.getMonth()] + " – " + end.getDate() + " " + MONTHS_SHORT[end.getMonth()] + " " + end.getFullYear();
-  }
   function fmtTimeFromDate(date) {
     return fmtTime(String(date.getHours()).padStart(2, "0") + ":" + String(date.getMinutes()).padStart(2, "0"));
   }
   function prefersReducedMotion() {
     return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
-  function categoryIcon(category, extraClass) {
-    var cat = CAT_ICON[category] ? category : "fitness";
-    return '<span class="' + (extraClass || "class-icon") + " cat-" + cat + '" aria-hidden="true">' +
-      svgIcon(CAT_ICON[cat]) + "</span>";
+  function classPhoto(name) {
+    return CLASS_IMAGES[name] || PLACEHOLDER_IMAGE;
   }
-  function primaryCategory(cls) {
-    return (cls.info.cats && cls.info.cats[0]) || "fitness";
+  function orderedSlots(cls) {
+    return cls.slots.slice().sort(function (a, b) {
+      return a.day - b.day || a.time.localeCompare(b.time);
+    });
   }
-  function slotsForDate(className, date) {
-    return SLOTS.filter(function (slot) {
-      return slot.name === className && slot.day === date.getDay();
-    }).sort(function (a, b) { return a.time.localeCompare(b.time); });
-  }
-  function bookableSlotsForDate(className, date) {
-    return slotsForDate(className, date).filter(function (slot) { return isBookable(date, slot); });
-  }
-  function firstBookableDateInWeek(className, weekStart) {
-    for (var i = 0; i < 7; i++) {
-      var date = addDays(weekStart, i);
-      if (bookableSlotsForDate(className, date).length) return date;
-    }
-    return null;
-  }
-  function nextBookableDate(className) {
-    var today = startOfDay(new Date());
-    for (var i = 0; i < MAX_WEEKS * 7; i++) {
-      var date = addDays(today, i);
-      if (bookableSlotsForDate(className, date).length) return date;
-    }
-    return null;
+  function categoryTags(cls) {
+    return (cls.info.cats || []).map(function (id) {
+      var cat = CAT_BY_ID[id];
+      return '<span class="mini-tag">' + esc(cat ? cat.label : id) + '</span>';
+    }).join("");
   }
   function nextDateForSlot(slot) {
     if (!slot) return null;
@@ -190,37 +143,6 @@
     var diff = (day - today.getDay() + 7) % 7;
     return addDays(today, diff);
   }
-  function weekDates(weekStart) {
-    var out = [];
-    for (var i = 0; i < 7; i++) out.push(addDays(weekStart, i));
-    return out;
-  }
-  function plural(count, one, many) {
-    return count + " " + (count === 1 ? one : (many || one + "s"));
-  }
-
-  /* -----------------------------------------------------------------------
-     Data helpers
-     ----------------------------------------------------------------------- */
-  function filteredClasses() {
-    var q = state.query.trim().toLowerCase();
-    return CLASSES.filter(function (cls) {
-      var cats = cls.info.cats || [];
-      if (state.category !== "all" && cats.indexOf(state.category) === -1) return false;
-      if (!q) return true;
-      var catLabels = cats.map(function (id) { return CAT_BY_ID[id] ? CAT_BY_ID[id].label : id; }).join(" ");
-      var dayLabels = cls.slots.map(function (slot) { return DAYS_LONG[slot.day] || ""; }).join(" ");
-      var haystack = (cls.name + " " + (cls.info.desc || "") + " " + catLabels + " " + dayLabels).toLowerCase();
-      return haystack.indexOf(q) !== -1;
-    });
-  }
-  function resultCountLabel(list) {
-    if (!list.length) return "No matches";
-    var pluralWord = list.length === 1 ? "class" : "classes";
-    if (state.query.trim() || state.category !== "all") return list.length + " " + pluralWord;
-    return list.length + " " + pluralWord;
-  }
-
   /* -----------------------------------------------------------------------
      Persistent request history (local device only)
      ----------------------------------------------------------------------- */
@@ -258,63 +180,13 @@
   /* -----------------------------------------------------------------------
      Templates
      ----------------------------------------------------------------------- */
-  function heroHTML() {
-    return '' +
-      '<section class="hero">' +
-        '<img src="img/hero.webp" alt="" width="1000" height="667" fetchpriority="high">' +
-        '<span class="hero-tag">' + svgIcon("i-spark") + ' Hastings</span>' +
-        '<div class="hero-copy">' +
-          '<p class="eyebrow">Be Well Fit · Studio 1 &amp; 2</p>' +
-          '<h1>Find your class. Feel your best.</h1>' +
-          '<p>Pick a class and time — we’ll confirm your place by email.</p>' +
-        '</div>' +
-      '</section>';
-  }
-
-  function stepperHTML() {
-    var steps = [
-      { n: 1, label: "Class", enabled: true },
-      { n: 2, label: "Day & time", enabled: !!state.className },
-      { n: 3, label: "Details", enabled: !!state.slot }
-    ];
-    return '<nav class="stepper" aria-label="Booking steps">' + steps.map(function (step) {
-      var active = state.step === step.n;
-      var done = state.step > step.n;
-      var disabled = !step.enabled || active;
-      return '<button type="button" class="stepper-step' + (active ? " is-active" : "") + (done ? " is-done" : "") + '"' +
-        ' data-action="go-step" data-step="' + step.n + '"' +
-        (disabled ? " disabled" : "") + (active ? ' aria-current="step"' : "") +
-        ' aria-label="Step ' + step.n + ": " + step.label + '">' +
-        '<span class="dot">' + (done ? svgIcon("i-check") : step.n) + '</span>' +
-        '<span>' + step.label + '</span>' +
-      '</button>';
-    }).join("") + '</nav>';
-  }
-
-  function chipsHTML() {
-    var items = [{ id: "all", label: "All" }].concat(CATEGORIES);
-    return items.map(function (cat) {
-      var active = state.category === cat.id;
-      return '<button type="button" class="chip' + (active ? " is-active" : "") + '" data-action="filter-category" data-category="' + esc(cat.id) + '" aria-pressed="' + (active ? "true" : "false") + '">' +
-        esc(cat.label) + '</button>';
-    }).join("");
-  }
-
   function classCardsHTML(list) {
-    if (!list.length) {
-      return '<div class="empty">' +
-        '<div class="empty-icon">' + svgIcon("i-search") + '</div>' +
-        '<h3>No classes found</h3>' +
-        '<p>Try a different search or show every class.</p>' +
-        '<button type="button" class="btn btn-soft" data-action="reset-filters">Show all classes</button>' +
-      '</div>';
-    }
-    return list.map(function (cls) {
-      var count = cls.slots.length;
-      return '<button type="button" class="class-card" data-action="choose-class" data-class="' + esc(cls.name) + '">' +
-        categoryIcon(primaryCategory(cls)) +
-        '<span class="class-name">' + esc(cls.name) + '</span>' +
-        '<span class="class-meta"><span>' + count + '</span> ' + (count === 1 ? "session" : "sessions") + ' a week</span>' +
+    return list.map(function (cls, index) {
+      return '<button type="button" class="class-tile" data-action="choose-class" data-class="' + esc(cls.name) + '">' +
+        '<img src="' + esc(classPhoto(cls.name)) + '" alt="" width="640" height="800"' +
+          (index < 2 ? ' fetchpriority="high"' : index > 3 ? ' loading="lazy"' : "") +
+          ' decoding="async">' +
+        '<span class="class-tile-name">' + esc(cls.name) + '</span>' +
       '</button>';
     }).join("");
   }
@@ -341,116 +213,45 @@
   }
 
   function step1HTML() {
-    var list = filteredClasses();
-    return heroHTML() + stepperHTML() +
-      '<div class="section-head">' +
-        '<h2 class="section-title">Choose a class</h2>' +
-        '<span class="section-meta" id="result-count">' + esc(resultCountLabel(list)) + '</span>' +
-      '</div>' +
-      '<div class="search">' +
-        svgIcon("i-search", "search-icon") +
-        '<label class="sr-only" for="class-search">Search classes</label>' +
-        '<input id="class-search" type="search" placeholder="Search classes…" autocomplete="off" spellcheck="false" value="' + esc(state.query) + '">' +
-        '<button class="search-clear" type="button" data-action="clear-search" aria-label="Clear search"' + (state.query ? "" : " hidden") + '>' +
-          svgIcon("i-x") +
-        '</button>' +
-      '</div>' +
-      '<div class="chips" role="group" aria-label="Filter by class type">' + chipsHTML() + '</div>' +
-      '<div class="class-grid" id="class-grid">' + classCardsHTML(list) + '</div>' +
-      historyHTML() +
-      '<p class="fineprint">Timetable updated ' + esc(UPDATED) + '. Classes run Monday to Saturday.</p>';
+    return '<h1 class="sr-only">Choose a class</h1>' +
+      '<div class="class-grid" id="class-grid">' + classCardsHTML(CLASSES) + '</div>';
   }
 
-  function timeSectionHTML() {
-    var date = state.selectedDate;
-    if (!date) {
-      var weekStart = state.weekStart || startOfWeek(new Date());
-      var hasSessions = weekDates(weekStart).some(function (day) {
-        return bookableSlotsForDate(state.className, day).length > 0;
-      });
-      return '<div class="time-head"><h3>Times</h3></div>' +
-        '<div class="no-times">' + (hasSessions
-          ? "Choose a highlighted day above to see its times."
-          : "No sessions are left this week. Use the arrows above to see the next week.") + '</div>';
-    }
-    var slots = bookableSlotsForDate(state.className, date);
-    var head = '<div class="time-head"><h3>' + (slots.length ? "Choose a time" : "Times") + '</h3><span>' + esc(fmtDayLong(date)) + '</span></div>';
-    if (!slots.length) {
-      return head + '<div class="no-times">No more times available on this day. Try another day.</div>';
-    }
-    return head + '<div class="time-list">' + slots.map(function (slot) {
-      return '<button type="button" class="time-card" data-action="choose-time" data-day="' + slot.day + '" data-time="' + esc(slot.time) + '" data-studio="' + slot.studio + '"' +
-        ' aria-label="' + esc(fmtTime(slot.time)) + ', Studio ' + slot.studio + ', ' + esc(fmtDayLong(date)) + '">' +
-        '<span class="time-card-time">' + esc(fmtTime(slot.time)) + '</span>' +
-        '<span class="time-card-sub">Studio ' + slot.studio + '</span>' +
-        '<span class="time-card-arrow">' + svgIcon("i-chevron-right") + '</span>' +
-      '</button>';
-    }).join("") + '</div>';
+  function sessionRowsHTML(cls) {
+    return orderedSlots(cls).map(function (slot) {
+      var date = nextDateForSlot(slot);
+      var dateLabel = date ? fmtDateFull(date) : "no upcoming date";
+      return '<li class="session-row">' +
+        '<div class="session-when">' +
+          '<span class="session-day">' + esc(DAYS_LONG[slot.day]) + '</span>' +
+          '<span class="session-date">' + (date ? esc(fmtDayShort(date)) : "No upcoming date") + '</span>' +
+        '</div>' +
+        '<div class="session-detail">' +
+          '<span class="session-time">' + esc(fmtTime(slot.time)) + '</span>' +
+          '<span class="session-studio">' + svgIcon("i-pin") + 'Studio ' + slot.studio + '</span>' +
+        '</div>' +
+        '<button type="button" class="session-book" data-action="book-session" data-day="' + slot.day + '" data-time="' + esc(slot.time) + '" data-studio="' + slot.studio + '"' +
+          (date ? ' aria-label="Book here — ' + esc(dateLabel) + ' at ' + esc(fmtTime(slot.time)) + ', Studio ' + slot.studio + '"' : " disabled") + '>' +
+          'Book here</button>' +
+      '</li>';
+    }).join("");
   }
 
   function step2HTML() {
     var cls = CLASS_BY_NAME[state.className];
     if (!cls) return step1HTML();
-    var weekStart = state.weekStart || startOfWeek(new Date());
-    var minStart = startOfWeek(new Date());
-    var maxStart = addDays(minStart, 7 * (MAX_WEEKS - 1));
-    var canPrev = weekStart.getTime() > minStart.getTime();
-    var canNext = weekStart.getTime() < maxStart.getTime();
-    var dates = weekDates(weekStart);
-    var todayKey = dateKey(new Date());
-    var selectedKey = state.selectedDate ? dateKey(state.selectedDate) : "";
-    var categories = (cls.info.cats || []).map(function (id) {
-      var cat = CAT_BY_ID[id];
-      return '<span class="mini-tag">' + esc(cat ? cat.label : id) + '</span>';
-    }).join("");
-    var dayCells = dates.map(function (date) {
-      var allSlots = slotsForDate(cls.name, date);
-      var bookable = bookableSlotsForDate(cls.name, date);
-      var isToday = dateKey(date) === todayKey;
-      var isSelected = dateKey(date) === selectedKey;
-      var isPast = date.getTime() < startOfDay(new Date()).getTime() || (isToday && !bookable.length && allSlots.length > 0);
-      var classes = "cal-day";
-      if (allSlots.length) classes += " has-class";
-      if (isToday) classes += " is-today";
-      if (isSelected) classes += " is-selected";
-      if (isPast) classes += " is-past";
-      var label = fmtDateFull(date);
-      if (bookable.length) label += ", " + plural(bookable.length, "time") + " available";
-      else if (allSlots.length) label += isToday ? ", no more times today" : ", no times available";
-      else label += ", no classes";
-      return '<button type="button" class="' + classes + '" data-action="select-date" data-date="' + dateKey(date) + '" aria-pressed="' + (isSelected ? "true" : "false") + '" aria-label="' + esc(label) + '"' +
-        (bookable.length ? "" : " disabled") + '>' +
-        '<span>' + date.getDate() + '</span><span class="dot"></span>' +
-      '</button>';
-    }).join("");
-
     return '<button type="button" class="back-btn" data-action="go-step" data-step="1">' + svgIcon("i-arrow-left") + 'All classes</button>' +
-      '<h1 class="sr-only">Book ' + esc(cls.name) + '</h1>' +
-      stepperHTML() +
-      '<section class="class-hero">' +
-        categoryIcon(primaryCategory(cls)) +
-        '<div class="class-hero-copy">' +
-          '<h2>' + esc(cls.name) + '</h2>' +
-          '<p>' + esc(cls.info.desc || "A class at Be Well Fit.") + '</p>' +
-          '<div class="class-hero-tags">' +
-            categories +
-            '<span class="mini-tag">' + svgIcon("i-calendar") + plural(cls.slots.length, "session") + ' a week</span>' +
-          '</div>' +
+      '<section class="class-detail">' +
+        '<div class="class-detail-photo">' +
+          '<img src="' + esc(classPhoto(cls.name)) + '" alt="" width="640" height="800" fetchpriority="high">' +
+          '<h1 class="class-detail-name">' + esc(cls.name) + '</h1>' +
         '</div>' +
+        '<p class="class-detail-desc">' + esc(cls.info.desc || "A class at Be Well Fit.") + '</p>' +
+        '<div class="class-hero-tags">' + categoryTags(cls) + '</div>' +
       '</section>' +
-      '<section class="calendar" aria-label="Choose a day">' +
-        '<div class="cal-head">' +
-          '<button type="button" class="cal-nav" data-action="nav-week" data-delta="-1" aria-label="Previous week"' + (canPrev ? "" : " disabled") + '>' + svgIcon("i-arrow-left") + '</button>' +
-          '<div class="cal-title">' + esc(fmtWeekRange(weekStart)) + '</div>' +
-          '<button type="button" class="cal-nav" data-action="nav-week" data-delta="1" aria-label="Next week"' + (canNext ? "" : " disabled") + '>' + svgIcon("i-chevron-right") + '</button>' +
-        '</div>' +
-        '<div class="cal-grid">' +
-          WEEK_HEADERS.map(function (day) { return '<div class="cal-dow">' + day + '</div>'; }).join("") +
-          dayCells +
-        '</div>' +
-      '</section>' +
-      '<section id="time-section">' + timeSectionHTML() + '</section>' +
-      '<p class="fineprint">Times are UK time. Sessions take place in Studio 1 or Studio 2.</p>';
+      '<div class="sessions-head"><h2>Weekly sessions</h2><span>Choose a session to book</span></div>' +
+      '<ul class="session-list">' + sessionRowsHTML(cls) + '</ul>' +
+      '<p class="fineprint">Times are UK time. Sessions take place in Studio 1 or Studio 2. “Book here” chooses the next available date.</p>';
   }
 
   function step3HTML() {
@@ -465,10 +266,9 @@
 
     return '<button type="button" class="back-btn" data-action="go-step" data-step="2">' + svgIcon("i-arrow-left") + 'Change time</button>' +
       '<h1 class="sr-only">Your details for ' + esc(cls.name) + '</h1>' +
-      stepperHTML() +
       '<section class="summary-card">' +
         '<div class="summary-top">' +
-          categoryIcon(primaryCategory(cls)) +
+          '<img class="summary-thumb" src="' + esc(classPhoto(cls.name)) + '" alt="" width="96" height="96">' +
           '<div class="summary-copy"><small>Your class</small><h2>' + esc(cls.name) + '</h2></div>' +
           '<button type="button" class="summary-change" data-action="go-step" data-step="2">Change</button>' +
         '</div>' +
@@ -532,7 +332,7 @@
         '<button type="button" class="btn btn-primary btn-block" data-action="book-again">Book another class</button>' +
         '<button type="button" class="btn btn-ghost btn-block" data-action="view-timetable">View timetable</button>' +
       '</div>' +
-      '<p class="success-help">Requests are saved on this phone so you can check what you sent. Your place isn’t confirmed until the team replies.</p>' +
+      '<p class="success-help">Requests are saved on this phone — find them on the Info tab. Your place isn’t confirmed until the team replies.</p>' +
     '</section>';
   }
 
@@ -550,24 +350,6 @@
     els.bookFlow.innerHTML = html;
     if (opts.scroll) scrollToTop();
     if (opts.focus) focusMain();
-    if (opts.focusCalNav) {
-      var nav = $('[data-action="nav-week"][data-delta="' + opts.focusCalNav + '"]', els.bookFlow);
-      if (nav && !nav.disabled) nav.focus({ preventScroll: true });
-    }
-  }
-
-  function renderClassResults() {
-    if (!els.bookFlow) return;
-    var list = filteredClasses();
-    var grid = $("#class-grid", els.bookFlow);
-    if (grid) grid.innerHTML = classCardsHTML(list);
-    var count = $("#result-count", els.bookFlow);
-    if (count) count.textContent = resultCountLabel(list);
-  }
-
-  function renderTimeSection() {
-    var holder = $("#time-section", els.bookFlow);
-    if (holder) holder.innerHTML = timeSectionHTML();
   }
 
   function renderTimetable(opts) {
@@ -650,6 +432,8 @@
       var el = $(selector);
       if (el) el.textContent = UPDATED;
     });
+    var historyHolder = $("#info-history");
+    if (historyHolder) historyHolder.innerHTML = historyHTML();
   }
 
   function scrollToTop() {
@@ -665,7 +449,7 @@
     window.setTimeout(function () { live.textContent = message; }, 60);
   }
   function stepAnnouncement() {
-    if (state.step === 2) return state.className ? "Choose a day and time for " + state.className + "." : "Choose a day and time.";
+    if (state.step === 2) return state.className ? "Choose a session for " + state.className + "." : "Choose a session.";
     if (state.step === 3) return "Enter your details and send the booking request.";
     if (state.step === 4) return "Booking request sent. The team will reply by email to confirm.";
     return "Choose a class.";
@@ -726,55 +510,23 @@
     if (!cls) return;
     state.className = name;
     state.slot = null;
-    var next = nextBookableDate(name);
-    state.weekStart = startOfWeek(next || new Date());
-    state.selectedDate = next;
     state.step = 2;
     renderBook({ scroll: true, focus: true });
     announce(stepAnnouncement());
   }
 
-  function changeWeek(delta) {
+  function bookSession(day, time, studio) {
     if (!state.className) return;
-    var minStart = startOfWeek(new Date());
-    var maxStart = addDays(minStart, 7 * (MAX_WEEKS - 1));
-    var current = state.weekStart || minStart;
-    var next = addDays(current, delta * 7);
-    if (next.getTime() < minStart.getTime() || next.getTime() > maxStart.getTime()) return;
-    state.weekStart = next;
-    state.selectedDate = firstBookableDateInWeek(state.className, next);
-    renderBook({ scroll: false, focusCalNav: String(delta) });
-    announce(fmtWeekRange(next) + (state.selectedDate ? ". " + fmtDayLong(state.selectedDate) + " selected." : ". No sessions left this week."));
-  }
-
-  function selectDate(key) {
-    if (!state.className) return;
-    var date = parseDateKey(key);
-    if (!date) return;
-    if (!bookableSlotsForDate(state.className, date).length) return;
-    state.selectedDate = date;
-    $$(".cal-day", els.bookFlow).forEach(function (button) {
-      var selected = button.dataset.date === key;
-      button.classList.toggle("is-selected", selected);
-      button.setAttribute("aria-pressed", selected ? "true" : "false");
-    });
-    renderTimeSection();
-    var count = bookableSlotsForDate(state.className, date).length;
-    announce(fmtDayLong(date) + " selected. " + plural(count, "time") + " available.");
-  }
-
-  function chooseTime(button) {
-    if (!state.className || !state.selectedDate) return;
     var slot = SLOTS.filter(function (item) {
       return item.name === state.className &&
-        item.day === Number(button.dataset.day) &&
-        item.time === button.dataset.time &&
-        item.studio === Number(button.dataset.studio);
+        item.day === Number(day) &&
+        item.time === time &&
+        item.studio === Number(studio);
     })[0];
     if (!slot) return;
-    if (!isBookable(state.selectedDate, slot)) {
-      showToast("That session has just passed. Please choose another time.");
-      renderBook({ scroll: false });
+    var date = nextDateForSlot(slot);
+    if (!date) {
+      showToast("No upcoming date was found for that session.");
       return;
     }
     state.slot = {
@@ -782,8 +534,8 @@
       day: slot.day,
       time: slot.time,
       studio: slot.studio,
-      date: state.selectedDate,
-      start: slotStart(state.selectedDate, slot.time)
+      date: date,
+      start: slotStart(date, slot.time)
     };
     state.step = 3;
     renderBook({ scroll: true, focus: true });
@@ -793,12 +545,8 @@
   function resetBooking() {
     state.step = 1;
     state.className = null;
-    state.weekStart = null;
-    state.selectedDate = null;
     state.slot = null;
     state.request = null;
-    state.category = "all";
-    state.query = "";
     renderBook({ scroll: true, focus: true });
     announce("Choose a class.");
   }
@@ -814,10 +562,15 @@
       return;
     }
     state.className = className;
-    state.weekStart = startOfWeek(date);
-    state.selectedDate = date;
-    state.slot = null;
-    state.step = 2;
+    state.slot = {
+      name: slot.name,
+      day: slot.day,
+      time: slot.time,
+      studio: slot.studio,
+      date: date,
+      start: slotStart(date, slot.time)
+    };
+    state.step = 3;
     switchTab("book", { scroll: true, focus: true });
   }
 
@@ -1060,38 +813,12 @@
     if (!button || !els.bookFlow || !els.bookFlow.contains(button)) return;
     var action = button.dataset.action;
 
-    if (action === "filter-category") {
-      state.category = button.dataset.category || "all";
-      $$(".chip", els.bookFlow).forEach(function (chip) {
-        var active = chip.dataset.category === state.category;
-        chip.classList.toggle("is-active", active);
-        chip.setAttribute("aria-pressed", active ? "true" : "false");
-      });
-      renderClassResults();
-    } else if (action === "clear-search") {
-      state.query = "";
-      var search = $("#class-search", els.bookFlow);
-      if (search) { search.value = ""; search.focus(); }
-      var clear = $(".search-clear", els.bookFlow);
-      if (clear) clear.hidden = true;
-      renderClassResults();
-    } else if (action === "reset-filters") {
-      state.category = "all";
-      state.query = "";
-      renderBook({ scroll: false });
-      var field = $("#class-search", els.bookFlow);
-      if (field) field.focus({ preventScroll: true });
-      announce("Showing all classes.");
-    } else if (action === "choose-class") {
+    if (action === "choose-class") {
       chooseClass(button.dataset.class);
     } else if (action === "go-step") {
       goToStep(button.dataset.step);
-    } else if (action === "nav-week") {
-      changeWeek(Number(button.dataset.delta));
-    } else if (action === "select-date") {
-      selectDate(button.dataset.date);
-    } else if (action === "choose-time") {
-      chooseTime(button);
+    } else if (action === "book-session") {
+      bookSession(button.dataset.day, button.dataset.time, button.dataset.studio);
     } else if (action === "book-again") {
       resetBooking();
     } else if (action === "view-timetable") {
@@ -1102,13 +829,6 @@
   function onBookInput(event) {
     var input = event.target;
     if (!input || !input.matches) return;
-    if (input.id === "class-search") {
-      state.query = input.value;
-      var clear = $(".search-clear", els.bookFlow);
-      if (clear) clear.hidden = !input.value;
-      renderClassResults();
-      return;
-    }
     if (state.step === 3 && input.name && ["firstName", "lastName", "email", "notes"].indexOf(input.name) !== -1) {
       state.request = Object.assign({}, state.request || {}, { [input.name]: input.value });
       if (input.closest(".field.has-error")) clearFieldError(input);
@@ -1274,6 +994,12 @@
       els.bookFlow.addEventListener("click", onBookClick);
       els.bookFlow.addEventListener("input", onBookInput);
       els.bookFlow.addEventListener("submit", onBookSubmit);
+      els.bookFlow.addEventListener("error", function (event) {
+        var img = event.target;
+        if (img && img.tagName === "IMG" && img.getAttribute("src") !== PLACEHOLDER_IMAGE) {
+          img.src = PLACEHOLDER_IMAGE;
+        }
+      }, true);
     }
     if (els.ttDays) {
       els.ttDays.addEventListener("click", onDayTabClick);

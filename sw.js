@@ -1,6 +1,6 @@
 /* Be Well Fit — service worker
    Bump CACHE when any app shell file changes, so installed phones update. */
-const CACHE = "bewellfit-v2";
+const CACHE = "bewellfit-v3";
 const SHELL = [
   "./",
   "./index.html",
@@ -16,7 +16,7 @@ const SHELL = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
-  "./img/hero.webp"
+  "./img/classes/placeholder.webp"
 ];
 
 self.addEventListener("install", (event) => {

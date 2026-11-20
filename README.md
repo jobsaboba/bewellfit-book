@@ -1,8 +1,8 @@
 # Be Well Fit — class booking app
 
-A simple installable web app for **bewellfit.org**. Clients choose a class, day
-and time, then send a booking request to the Be Well Fit team. The team replies
-to the request email to confirm the place.
+A simple installable web app for **bewellfit.org**. Clients pick a class photo,
+choose one of its weekly sessions, then send a booking request to the Be Well
+Fit team. The team replies to the request email to confirm the place.
 
 There is no payment step and no client login. The app is a static PWA — it can
 be hosted on GitHub Pages, Netlify, Cloudflare Pages or any ordinary web host.
@@ -11,8 +11,10 @@ be hosted on GitHub Pages, Netlify, Cloudflare Pages or any ordinary web host.
 
 ## How it works
 
-1. The client picks a class from the timetable data.
-2. They pick a highlighted day and then a time.
+1. The client picks a class from the photo tiles.
+2. They see every weekly day, time and studio for that class and tap
+   **Book here** on the session they want. The app chooses the next bookable
+   date for that weekly slot.
 3. They enter their name, email and an optional note.
 4. The app posts those details to the studio's existing Contact Form 7 form
    (`form 503`) on bewellfit.org. WordPress emails the booking to whichever
@@ -49,7 +51,7 @@ silently lost.
 | `manifest.webmanifest` | Install metadata |
 | `sw.js` | Offline cache |
 | `icons/` | App icons and bee brand mark |
-| `img/hero.webp` | Header photograph |
+| `img/classes/` | Class photos plus `placeholder.webp` for missing images |
 | `fonts/` | Self-hosted Montserrat and Nunito |
 
 ## Updating the timetable
@@ -60,10 +62,13 @@ Everything timetable-related lives in `data.js`:
   Saturday), 24-hour time, and studio (`1` or `2`).
 - `BWF_CLASS_INFO` — description and categories for each class name. The name
   must match the name used in `BWF_SLOTS`.
-- `BWF_CATEGORIES` — filter labels shown on the class picker.
+- `BWF_CLASS_IMAGES` — the photo shown for each class. To use a new picture,
+  replace the file in `img/classes/` or change the path here. Any class without
+  an entry falls back to `img/classes/placeholder.webp`.
+- `BWF_CATEGORIES` — class-type tags shown on the session page.
 - `BWF_UPDATED` — the "timetable updated" date shown in the app.
 
-After editing, bump `CACHE` in `sw.js` (e.g. `bewellfit-v2`) so installed
+After editing, bump `CACHE` in `sw.js` (e.g. `bewellfit-v3`) so installed
 phones pick up the new data.
 
 ## Configuration
@@ -118,7 +123,8 @@ the bewellfit.org DNS.
 ## Privacy and behaviour notes
 
 - Booking details are only stored in the browser for the "Your requests"
-  history (localStorage). They are not sent anywhere except the booking form.
+  history shown on the Info page (localStorage). They are not sent anywhere
+  except the booking form.
 - The app does not know whether the owner has confirmed a request; the
   confirmation happens by email.
 - The timetable is a copy of the website's weekly schedule. If the studio
