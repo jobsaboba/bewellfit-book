@@ -1,14 +1,14 @@
 /* Be Well Fit — service worker
    Bump CACHE here and the ?v= numbers in index.html whenever the app shell
    changes, so installed phones fetch the new files instead of old cached ones. */
-const CACHE = "bewellfit-v9";
+const CACHE = "bewellfit-v10";
 const SHELL = [
   "./",
   "./index.html",
-  "./styles.css?v=9",
-  "./app.js?v=9",
-  "./data.js?v=9",
-  "./manifest.webmanifest?v=9",
+  "./styles.css?v=10",
+  "./app.js?v=10",
+  "./data.js?v=10",
+  "./manifest.webmanifest?v=10",
   "./fonts/montserrat-latin.woff2",
   "./fonts/nunito-latin.woff2",
   "./icons/bee.png",
@@ -18,6 +18,7 @@ const SHELL = [
   "./icons/icon-512.png",
   "./icons/icon-maskable-512.png",
   "./img/hero.webp",
+  "./img/studio-1.webp",
   "./img/studio-2.webp"
 ];
 

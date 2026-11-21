@@ -10,7 +10,7 @@
   var PRICING = window.BWF_PRICING || {};
   var SLOTS = window.BWF_SLOTS || [];
   var UPDATED = window.BWF_UPDATED || "";
-  var APP_VERSION = "9";
+  var APP_VERSION = "10";
   var MAX_WEEKS = 8;
   var LEAD_TIME = 60 * 60 * 1000;
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;

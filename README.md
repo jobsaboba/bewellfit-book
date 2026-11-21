@@ -58,6 +58,7 @@ booking is never silently lost.
 | `sw.js` | Offline cache |
 | `icons/` | App icons and bee brand mark |
 | `img/hero.webp` | Header photograph |
+| `img/studio-1.webp` | Studio 1 at Clifton Road |
 | `img/studio-2.webp` | Studio 2 entrance photo |
 | `fonts/` | Self-hosted Montserrat and Nunito |
 
@@ -77,7 +78,7 @@ Everything timetable-related lives in `data.js`:
 After editing, bump the app version so installed phones pick up the new data.
 Change the number in these places:
 
-- `CACHE` in `sw.js` (for example `bewellfit-v9`).
+- `CACHE` in `sw.js` (for example `bewellfit-v10`).
 - The `?v=` on `styles.css`, `data.js` and `app.js` in `index.html`.
 - The same three `?v=` entries, plus `manifest.webmanifest?v=`, in the `SHELL`
   list in `sw.js`.
