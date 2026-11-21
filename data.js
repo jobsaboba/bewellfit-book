@@ -7,14 +7,14 @@
    studio: 1 or 2
 */
 
-window.BWF_UPDATED = "19 November 2026";
+window.BWF_UPDATED = "21 November 2026";
 
 window.BWF_CONFIG = {
   contactEmail: "bewellfit@gmx.com",
   address: "Bewellfit, Clifton Rd, Hastings TN34 2AA",
   mapsUrl: "https://maps.google.com/?q=Bewellfit,+Clifton+Rd,+Hastings+TN34+2AA",
-  studio2Address: "Ore Community Centre, Hastings TN35 5BH",
-  studio2MapsUrl: "https://maps.google.com/?q=Ore+Community+Centre,+Hastings+TN35+5BH"
+  studio2Address: "Unit 2, Block D, Brook Way, Ivyhouse Lane, Hastings TN35 4NN",
+  studio2MapsUrl: "https://maps.google.com/?q=Unit+2,+Block+D,+Brook+Way,+Ivyhouse+Lane,+Hastings+TN35+4NN"
 };
 
 window.BWF_PRICING = {
@@ -68,7 +68,7 @@ window.BWF_PRICING = {
     {
       title: "Aerial & Bungee",
       items: [
-        { name: "Aerial Skills", price: "£8.00" },
+        { name: "Aerial Skills for Children", price: "£8.00" },
         { name: "Superfly Bungee", price: "£10.00" }
       ]
     },
@@ -129,9 +129,9 @@ window.BWF_CLASS_INFO = {
     cats: ["aerial"],
     desc: "Aerial hoop and sling skills for adults, all levels."
   },
-  "Aerial Skills": {
-    cats: ["aerial"],
-    desc: "Build strength and confidence on aerial hoop and sling."
+  "Aerial Skills for Children": {
+    cats: ["aerial", "kids"],
+    desc: "Aerial hoop and sling skills for children, building strength and confidence."
   },
   "Cheer Circus": {
     cats: ["aerial", "kids"],
@@ -262,9 +262,9 @@ window.BWF_SLOTS = [
   { name: "Step", day: 1, time: "18:00", studio: 1 },
   { name: "Pump Pilates", day: 1, time: "18:45", studio: 1 },
   { name: "Adult Aerial Skills", day: 1, time: "09:15", studio: 2 },
-  { name: "Aerial Skills", day: 1, time: "16:00", studio: 2 },
+  { name: "Aerial Skills for Children", day: 1, time: "16:00", studio: 2 },
   { name: "Cheer Circus", day: 1, time: "17:00", studio: 2 },
-  { name: "Aerial Skills", day: 1, time: "18:00", studio: 2 },
+  { name: "Aerial Skills for Children", day: 1, time: "18:00", studio: 2 },
   { name: "Superfly Bungee", day: 1, time: "18:15", studio: 2 },
   { name: "Superfly Bungee", day: 1, time: "19:15", studio: 2 },
 
@@ -280,9 +280,9 @@ window.BWF_SLOTS = [
   { name: "Pilates (Fitness)", day: 2, time: "19:30", studio: 1 },
   { name: "Kettlebells & Free Weights", day: 2, time: "09:15", studio: 2 },
   { name: "Home Ed Aerial Skills", day: 2, time: "14:00", studio: 2 },
-  { name: "Aerial Skills", day: 2, time: "16:00", studio: 2 },
-  { name: "Aerial Skills", day: 2, time: "17:00", studio: 2 },
-  { name: "Aerial Skills", day: 2, time: "18:00", studio: 2 },
+  { name: "Aerial Skills for Children", day: 2, time: "16:00", studio: 2 },
+  { name: "Aerial Skills for Children", day: 2, time: "17:00", studio: 2 },
+  { name: "Aerial Skills for Children", day: 2, time: "18:00", studio: 2 },
   { name: "Aerobics / LBT", day: 2, time: "19:05", studio: 2 },
 
   /* Wednesday */
@@ -297,7 +297,7 @@ window.BWF_SLOTS = [
   { name: "Weights", day: 3, time: "10:00", studio: 2 },
   { name: "Home Ed Aerial Skills", day: 3, time: "11:00", studio: 2 },
   { name: "Home Ed Aerial Skills", day: 3, time: "12:00", studio: 2 },
-  { name: "Aerial Skills", day: 3, time: "16:00", studio: 2 },
+  { name: "Aerial Skills for Children", day: 3, time: "16:00", studio: 2 },
   { name: "Gymnastics", day: 3, time: "17:00", studio: 2 },
   { name: "Gymnastics", day: 3, time: "18:00", studio: 2 },
   { name: "Superfly Bungee", day: 3, time: "19:15", studio: 2 },
@@ -313,8 +313,8 @@ window.BWF_SLOTS = [
   { name: "Drums Alive", day: 4, time: "19:30", studio: 1 },
   { name: "Flexibility FX", day: 4, time: "09:15", studio: 2 },
   { name: "Home Ed Aerial Skills", day: 4, time: "13:00", studio: 2 },
-  { name: "Aerial Skills", day: 4, time: "16:00", studio: 2 },
-  { name: "Aerial Skills", day: 4, time: "17:00", studio: 2 },
+  { name: "Aerial Skills for Children", day: 4, time: "16:00", studio: 2 },
+  { name: "Aerial Skills for Children", day: 4, time: "17:00", studio: 2 },
   { name: "Gymnastics", day: 4, time: "18:00", studio: 2 },
   { name: "Purestretch", day: 4, time: "19:10", studio: 2 },
 
@@ -325,8 +325,8 @@ window.BWF_SLOTS = [
   { name: "Zumba", day: 5, time: "18:15", studio: 1 },
   { name: "Boxfit", day: 5, time: "09:15", studio: 2 },
   { name: "Home Ed Aerial Skills", day: 5, time: "11:00", studio: 2 },
-  { name: "Aerial Skills", day: 5, time: "16:00", studio: 2 },
-  { name: "Aerial Skills", day: 5, time: "17:00", studio: 2 },
+  { name: "Aerial Skills for Children", day: 5, time: "16:00", studio: 2 },
+  { name: "Aerial Skills for Children", day: 5, time: "17:00", studio: 2 },
   { name: "Adult Aerial", day: 5, time: "18:30", studio: 2 },
 
   /* Saturday */

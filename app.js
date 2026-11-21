@@ -10,7 +10,7 @@
   var PRICING = window.BWF_PRICING || {};
   var SLOTS = window.BWF_SLOTS || [];
   var UPDATED = window.BWF_UPDATED || "";
-  var APP_VERSION = "7";
+  var APP_VERSION = "8";
   var MAX_WEEKS = 8;
   var LEAD_TIME = 60 * 60 * 1000;
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -800,7 +800,7 @@
     var addressEl = $("#info-address");
     if (addressEl) addressEl.textContent = (CFG.address || "Clifton Rd, Hastings TN34 2AA").replace(/^Bewellfit,\s*/i, "");
     var address2El = $("#info-address-2");
-    if (address2El) address2El.textContent = CFG.studio2Address || "Ore Community Centre, Hastings TN35 5BH";
+    if (address2El) address2El.textContent = CFG.studio2Address || "Unit 2, Block D, Brook Way, Ivyhouse Lane, Hastings TN35 4NN";
     var mapsEl = $("#info-maps");
     if (mapsEl && CFG.mapsUrl) mapsEl.href = CFG.mapsUrl;
     var maps2El = $("#info-maps-2");

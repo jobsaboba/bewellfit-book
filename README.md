@@ -76,7 +76,7 @@ Everything timetable-related lives in `data.js`:
 After editing, bump the app version so installed phones pick up the new data.
 Change the number in these places:
 
-- `CACHE` in `sw.js` (for example `bewellfit-v7`).
+- `CACHE` in `sw.js` (for example `bewellfit-v8`).
 - The `?v=` on `styles.css`, `data.js` and `app.js` in `index.html`.
 - The same three `?v=` entries, plus `manifest.webmanifest?v=`, in the `SHELL`
   list in `sw.js`.
@@ -128,7 +128,7 @@ afterwards.
 
 - `contactEmail` — the address that booking and contact links use.
 - `address`, `mapsUrl` — Studio 1, shown on the Info page.
-- `studio2Address`, `studio2MapsUrl` — Studio 2 at Ore Community Centre.
+- `studio2Address`, `studio2MapsUrl` — Studio 2 at Unit 2, Block D, Brook Way, Ivyhouse Lane.
 
 To change where bookings go, edit `contactEmail` and bump the app version.
 
