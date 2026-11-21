@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="Be Well Fit">
 <meta name="format-detection" content="telephone=no">
 <title>Be Well Fit — Class Booking</title>
-<link rel="manifest" href="manifest.webmanifest?v=6">
+<link rel="manifest" href="manifest.webmanifest?v=7">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -21,9 +21,9 @@
 <meta property="og:image" content="icons/icon-512.png">
 <link rel="preload" href="fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=6">
-<script src="data.js?v=6" defer></script>
-<script src="app.js?v=6" defer></script>
+<link rel="stylesheet" href="styles.css?v=7">
+<script src="data.js?v=7" defer></script>
+<script src="app.js?v=7" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -46,7 +46,6 @@
   <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.4 3.5h3.1l1.5 4.2-2 1.4a13.5 13.5 0 0 0 5.9 5.9l1.4-2 4.2 1.5v3.1a2 2 0 0 1-2.2 2A17.6 17.6 0 0 1 4.4 5.7a2 2 0 0 1 2-2.2Z"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M19 10.2c0 5-7 11-7 11s-7-6-7-11a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></symbol>
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 20h16"/></symbol>
-  <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8.5 8.5M18 14v5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H10"/></symbol>
   <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3m0 0L8 7m4-4 4 4M5 12v7.5A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V12"/></symbol>
   <symbol id="i-wifi-off" viewBox="0 0 24 24"><path d="m3 3 18 18M9 18.5a4.5 4.5 0 0 1 6 0M6.5 15a8 8 0 0 1 4-2M3.5 11.5a13 13 0 0 1 3.8-2.1M20.5 11.5a13 13 0 0 0-5.4-2.6M17.5 15c-.6-.6-1.3-1-2-1.4"/><circle cx="12" cy="21" r=".7" fill="currentColor" stroke="none"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.8 21 20H3L12 3.8Z"/><path d="M12 9.5v4.6M12 17.3v.2"/></symbol>
@@ -104,7 +103,7 @@
       <div class="page-head">
         <p class="eyebrow">Be Well Fit · Hastings</p>
         <h1 id="info-title">Good to know</h1>
-        <p class="page-sub">Everything you need before your first class.</p>
+        <p class="page-sub">Prices, classes, booking and contact details — all inside the app.</p>
       </div>
 
       <section class="card info-brand-card">
@@ -113,6 +112,20 @@
           <h2>Be Well Fit</h2>
           <p>Fitness, aerial and wellbeing classes for every age and ability.</p>
         </div>
+      </section>
+
+      <section class="card" id="prices" aria-labelledby="prices-title">
+        <div class="card-head-row">
+          <h2 id="prices-title" class="card-title">Prices &amp; memberships</h2>
+          <span class="card-meta">Checked <span id="prices-updated"></span></span>
+        </div>
+        <p class="card-sub">No payment is taken in the app. Membership, passes and drop-in payments are arranged with the team.</p>
+        <div id="price-groups"></div>
+        <p class="price-note">Prices are set by the studio. Ask the team if anything is unclear.</p>
+        <a class="btn btn-soft btn-block" id="info-prices-email" href="mailto:bewellfit@gmx.com?subject=Membership%20and%20class%20passes">
+          <svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>
+          Ask about membership or passes
+        </a>
       </section>
 
       <section class="card" aria-labelledby="how-title">
@@ -124,7 +137,7 @@
           </li>
           <li>
             <span class="how-num">2</span>
-            <div><strong>Send your request</strong><p>The app emails your details straight to the Be Well Fit team.</p></div>
+            <div><strong>Send your request</strong><p>The app opens your email app with the details filled in. Press Send there.</p></div>
           </li>
           <li>
             <span class="how-num">3</span>
@@ -134,15 +147,37 @@
       </section>
 
       <section class="card" aria-labelledby="studio-title">
-        <h2 id="studio-title" class="card-title">Find the studio</h2>
+        <h2 id="studio-title" class="card-title">Find the studios</h2>
         <div class="contact-row">
           <span class="contact-icon"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg></span>
-          <div><strong>Bewellfit</strong><p id="info-address">Clifton Rd, Hastings TN34 2AA</p></div>
+          <div><strong>Studio 1</strong><p id="info-address">Clifton Rd, Hastings TN34 2AA</p></div>
         </div>
         <a class="btn btn-soft btn-block" id="info-maps" href="https://maps.google.com/?q=Bewellfit,+Clifton+Rd,+Hastings+TN34+2AA" target="_blank" rel="noopener noreferrer">
           <svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg>
-          Open in Maps
+          Open Studio 1 in Maps
         </a>
+        <div class="contact-row studio-row">
+          <span class="contact-icon"><svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg></span>
+          <div><strong>Studio 2</strong><p id="info-address-2">Ore Community Centre, Hastings TN35 5BH</p></div>
+        </div>
+        <a class="btn btn-ghost btn-block" id="info-maps-2" href="https://maps.google.com/?q=Ore+Community+Centre,+Hastings+TN35+5BH" target="_blank" rel="noopener noreferrer">
+          <svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg>
+          Open Studio 2 in Maps
+        </a>
+      </section>
+
+      <section class="card" id="class-guide" aria-labelledby="class-guide-title">
+        <div class="card-head-row">
+          <h2 id="class-guide-title" class="card-title">Classes &amp; descriptions</h2>
+          <span class="card-meta" id="guide-count"></span>
+        </div>
+        <p class="card-sub">Tap a class to read what it involves.</p>
+        <div class="search guide-search">
+          <svg class="icon search-icon" aria-hidden="true"><use href="#i-search"/></svg>
+          <label class="sr-only" for="guide-search">Search class guide</label>
+          <input id="guide-search" type="search" placeholder="Search classes…" autocomplete="off" spellcheck="false">
+        </div>
+        <div id="guide-list" class="guide-list"></div>
       </section>
 
       <section class="card" aria-labelledby="contact-title">
@@ -155,24 +190,7 @@
           <span class="contact-icon"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg></span>
           <div><strong>Phone</strong><p><a href="tel:+447706106415">07706 106415</a></p></div>
         </div>
-        <div class="link-list">
-          <a class="link-row" href="https://bewellfit.org" target="_blank" rel="noopener noreferrer">
-            <span>bewellfit.org</span><svg class="icon" aria-hidden="true"><use href="#i-external"/></svg>
-          </a>
-          <a class="link-row" href="https://bewellfit.org/timetable/" target="_blank" rel="noopener noreferrer">
-            <span>Full website timetable</span><svg class="icon" aria-hidden="true"><use href="#i-external"/></svg>
-          </a>
-          <a class="link-row" href="https://bewellfit.org/classes/" target="_blank" rel="noopener noreferrer">
-            <span>Classes &amp; descriptions</span><svg class="icon" aria-hidden="true"><use href="#i-external"/></svg>
-          </a>
-          <a class="link-row" href="https://bewellfit.org/pricing/" target="_blank" rel="noopener noreferrer">
-            <span>Prices, memberships &amp; payments</span><svg class="icon" aria-hidden="true"><use href="#i-external"/></svg>
-          </a>
-          <a class="link-row" href="https://bewellfit.org/book-online/" target="_blank" rel="noopener noreferrer">
-            <span>Book online on the website</span><svg class="icon" aria-hidden="true"><use href="#i-external"/></svg>
-          </a>
-        </div>
-        <p class="link-fallback">If a website link doesn’t open, the site may be temporarily unavailable. Email or call the studio using the details above.</p>
+        <p class="contact-note">Use the Book tab to request a class. Email or call if you need help choosing.</p>
       </section>
 
       <section class="card install-card" id="install-card" aria-labelledby="install-title">
@@ -198,7 +216,7 @@
       </section>
 
       <footer class="info-footer">
-        <p>Class booking for <a href="https://bewellfit.org" target="_blank" rel="noopener noreferrer">bewellfit.org</a></p>
+        <p>Be Well Fit class booking · Hastings</p>
         <p>Timetable updated <span id="info-updated"></span>.</p>
         <p>App version <span id="info-version"></span></p>
       </footer>
@@ -225,7 +243,7 @@
 <div class="sr-only" id="live" aria-live="polite"></div>
 
 <noscript>
-  <div class="noscript">This booking app needs JavaScript. You can book on <a href="https://bewellfit.org/book-online/" rel="noopener noreferrer">bewellfit.org</a> instead.</div>
+  <div class="noscript">This booking app needs JavaScript. To book, call <a href="tel:+447706106415">07706 106415</a> or email <a href="mailto:bewellfit@gmx.com">bewellfit@gmx.com</a>.</div>
 </noscript>
 </body>
 </html>

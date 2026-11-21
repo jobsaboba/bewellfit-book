@@ -7,9 +7,10 @@
   var CFG = window.BWF_CONFIG || {};
   var CATEGORIES = window.BWF_CATEGORIES || [];
   var CLASS_INFO = window.BWF_CLASS_INFO || {};
+  var PRICING = window.BWF_PRICING || {};
   var SLOTS = window.BWF_SLOTS || [];
   var UPDATED = window.BWF_UPDATED || "";
-  var APP_VERSION = "6";
+  var APP_VERSION = "7";
   var MAX_WEEKS = 8;
   var LEAD_TIME = 60 * 60 * 1000;
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -69,6 +70,7 @@
     slot: null,
     request: null,
     emailPending: false,
+    guideQuery: "",
     history: [],
     ttDay: null
   };
@@ -394,7 +396,8 @@
       '<div class="chips" role="group" aria-label="Filter by class type">' + chipsHTML() + '</div>' +
       '<div class="class-grid" id="class-grid">' + classCardsHTML(list) + '</div>' +
       historyHTML() +
-      '<p class="fineprint">Timetable updated ' + esc(UPDATED) + '. Classes run Monday to Saturday.</p>';
+      '<p class="fineprint">Timetable updated ' + esc(UPDATED) + '. Classes run Monday to Saturday.</p>' +
+      '<p class="info-nudge"><button type="button" class="link-button" data-action="open-info">See prices, memberships &amp; class guide</button></p>';
   }
 
   function timeSectionHTML() {
@@ -698,6 +701,95 @@
     }
   }
 
+  function priceOptionHTML(item) {
+    return '<div class="price-option' + (item.featured ? " is-featured" : "") + '">' +
+      '<div class="price-copy">' +
+        '<strong>' + esc(item.name) + '</strong>' +
+        (item.desc ? '<span>' + esc(item.desc) + '</span>' : "") +
+      '</div>' +
+      '<div class="price-amount">' + esc(item.price) +
+        (item.unit ? '<small>' + esc(item.unit) + '</small>' : "") +
+      '</div>' +
+    '</div>';
+  }
+
+  function priceGroupHTML(title, items) {
+    if (!items || !items.length) return "";
+    return '<div class="price-group">' +
+      '<h3>' + esc(title) + '</h3>' +
+      items.map(priceOptionHTML).join("") +
+    '</div>';
+  }
+
+  function priceListHTML(title, items) {
+    if (!items || !items.length) return "";
+    return '<div class="price-subgroup">' +
+      '<h4>' + esc(title) + '</h4>' +
+      '<dl class="price-list">' +
+        items.map(function (item) {
+          return '<div class="price-row"><dt>' + esc(item.name) + '</dt><dd>' + esc(item.price) + '</dd></div>';
+        }).join("") +
+      '</dl>' +
+    '</div>';
+  }
+
+  function pricesHTML() {
+    if (!PRICING || !PRICING.memberships) return "";
+    var html = priceGroupHTML("Memberships", PRICING.memberships);
+    html += priceGroupHTML("Class passes", PRICING.passes);
+    if (PRICING.individualGroups && PRICING.individualGroups.length) {
+      html += '<div class="price-group">' +
+        '<h3>Individual classes</h3>' +
+        PRICING.individualGroups.map(function (group) {
+          return priceListHTML(group.title, group.items);
+        }).join("") +
+      '</div>';
+    }
+    return html;
+  }
+
+  function guideNames() {
+    var query = state.guideQuery.trim().toLowerCase();
+    return Object.keys(CLASS_INFO).filter(function (name) {
+      if (!query) return true;
+      var info = CLASS_INFO[name] || {};
+      var categoryLabels = (info.cats || []).map(function (id) {
+        return CAT_BY_ID[id] ? CAT_BY_ID[id].label : id;
+      }).join(" ");
+      return (name + " " + (info.desc || "") + " " + categoryLabels).toLowerCase().indexOf(query) !== -1;
+    }).sort(function (a, b) { return a.localeCompare(b, "en"); });
+  }
+
+  function guideItemHTML(name) {
+    var info = CLASS_INFO[name] || {};
+    var category = CAT_BY_ID[(info.cats && info.cats[0]) || "fitness"];
+    return '<details class="guide-item">' +
+      '<summary>' +
+        '<span class="guide-name">' + esc(name) + '</span>' +
+        (category ? '<span class="guide-cat">' + esc(category.label) + '</span>' : "") +
+        '<svg class="icon guide-chevron" aria-hidden="true"><use href="#i-chevron-right"/></svg>' +
+      '</summary>' +
+      '<p>' + esc(info.desc || "Ask the team for more information about this class.") + '</p>' +
+    '</details>';
+  }
+
+  function renderClassGuide() {
+    var listEl = $("#guide-list");
+    var countEl = $("#guide-count");
+    var names = guideNames();
+    var query = state.guideQuery.trim();
+    if (listEl) {
+      listEl.innerHTML = names.length
+        ? names.map(guideItemHTML).join("")
+        : '<div class="guide-empty">No classes match “' + esc(query) + '”. Try another search.</div>';
+    }
+    if (countEl) {
+      countEl.textContent = query
+        ? names.length + (names.length === 1 ? " match" : " matches")
+        : names.length + " classes";
+    }
+  }
+
   function fillInfo() {
     var email = CFG.contactEmail || "bewellfit@gmx.com";
     var emailEl = $("#info-email");
@@ -707,8 +799,26 @@
     }
     var addressEl = $("#info-address");
     if (addressEl) addressEl.textContent = (CFG.address || "Clifton Rd, Hastings TN34 2AA").replace(/^Bewellfit,\s*/i, "");
+    var address2El = $("#info-address-2");
+    if (address2El) address2El.textContent = CFG.studio2Address || "Ore Community Centre, Hastings TN35 5BH";
     var mapsEl = $("#info-maps");
     if (mapsEl && CFG.mapsUrl) mapsEl.href = CFG.mapsUrl;
+    var maps2El = $("#info-maps-2");
+    if (maps2El && CFG.studio2MapsUrl) maps2El.href = CFG.studio2MapsUrl;
+
+    var priceGroups = $("#price-groups");
+    if (priceGroups) priceGroups.innerHTML = pricesHTML();
+    var pricesUpdated = $("#prices-updated");
+    if (pricesUpdated) pricesUpdated.textContent = PRICING.updated || UPDATED;
+    var priceEmail = $("#info-prices-email");
+    if (priceEmail) {
+      priceEmail.href = "mailto:" + email + "?subject=" + encodeURIComponent("Membership and class passes");
+    }
+
+    var guideSearch = $("#guide-search");
+    if (guideSearch && guideSearch.value !== state.guideQuery) guideSearch.value = state.guideQuery;
+    renderClassGuide();
+
     ["#tt-updated", "#info-updated"].forEach(function (selector) {
       var el = $(selector);
       if (el) el.textContent = UPDATED;
@@ -1076,6 +1186,8 @@
       resetBooking();
     } else if (action === "view-timetable") {
       switchTab("timetable", { scroll: true, focus: true });
+    } else if (action === "open-info") {
+      switchTab("info", { scroll: true, focus: true });
     } else if (action === "email-sent") {
       confirmEmailSent();
     } else if (action === "email-copy") {
@@ -1289,6 +1401,13 @@
       els.ttDays.addEventListener("keydown", onDayTabsKeydown);
     }
     if (els.ttContent) els.ttContent.addEventListener("click", onTimetableClick);
+    var guideSearch = $("#guide-search");
+    if (guideSearch) {
+      guideSearch.addEventListener("input", function () {
+        state.guideQuery = guideSearch.value;
+        renderClassGuide();
+      });
+    }
     if (els.installBtn) els.installBtn.addEventListener("click", promptInstall);
     if (els.installCardBtn) els.installCardBtn.addEventListener("click", promptInstall);
     window.addEventListener("beforeinstallprompt", onBeforeInstall);

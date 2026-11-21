@@ -1,8 +1,12 @@
 # Be Well Fit — class booking app
 
-A simple installable web app for **bewellfit.org**. Clients choose a class, day
-and time, then send a booking request to the Be Well Fit team. The team replies
+A simple installable web app for **Be Well Fit, Hastings**. Clients choose a
+class, day and time, then send a booking request to the team. The team replies
 to the request email to confirm the place.
+
+The app is self-contained: timetable, class guide, prices, memberships, both
+studio addresses, maps, phone and email are built in. It does not link out to
+bewellfit.org, so it still works when the website is unreachable.
 
 There is no payment step and no client login. The app is a static PWA — it can
 be hosted on GitHub Pages, Netlify, Cloudflare Pages or any ordinary web host.
@@ -33,9 +37,9 @@ booking is never silently lost.
 - [x] Confirm `bewellfit@gmx.com` is the right booking/contact address.
 - [x] Publish an interim version on GitHub Pages.
 - [ ] The owner sends the first real test booking and replies to confirm.
-- [ ] Decide the final address: keep the GitHub Pages link, move to
-      `book.bewellfit.org`, or add a page on the WordPress site (the last two
-      need DNS/WordPress access).
+- [ ] Decide the final address: keep the GitHub Pages link or move to
+      `book.bewellfit.org` (needs DNS access). The app no longer depends on the
+      WordPress site.
 - [ ] Bump the app version when deploying changes — see **Versioning and
       backups** below.
 
@@ -49,7 +53,7 @@ booking is never silently lost.
 | `index.html` | App shell, navigation, Info page and SVG icons |
 | `styles.css` | Complete visual design and responsive layout |
 | `app.js` | Booking flow, timetable, email request and PWA UI |
-| `data.js` | **The timetable, class descriptions, and app configuration** |
+| `data.js` | **Timetable, class guide, prices and app configuration** |
 | `manifest.webmanifest` | Install metadata |
 | `sw.js` | Offline cache |
 | `icons/` | App icons and bee brand mark |
@@ -65,12 +69,14 @@ Everything timetable-related lives in `data.js`:
 - `BWF_CLASS_INFO` — description and categories for each class name. The name
   must match the name used in `BWF_SLOTS`.
 - `BWF_CATEGORIES` — filter labels shown on the class picker.
+- `BWF_PRICING` — memberships, class passes and individual class prices shown
+  on the Info tab. Update the `updated` date when prices change.
 - `BWF_UPDATED` — the "timetable updated" date shown in the app.
 
 After editing, bump the app version so installed phones pick up the new data.
 Change the number in these places:
 
-- `CACHE` in `sw.js` (for example `bewellfit-v6`).
+- `CACHE` in `sw.js` (for example `bewellfit-v7`).
 - The `?v=` on `styles.css`, `data.js` and `app.js` in `index.html`.
 - The same three `?v=` entries, plus `manifest.webmanifest?v=`, in the `SHELL`
   list in `sw.js`.
@@ -80,6 +86,19 @@ Keep them on the same number. The manifest URL only needs to change when the
 manifest itself changes. The versioned URLs make the browser fetch new files
 even if an old service worker is still active. The service worker then replaces
 the old cache and reloads the page once.
+
+## Prices, classes and website independence
+
+The Info tab is the single source of truth for customers:
+
+- prices, memberships and class passes from `BWF_PRICING`;
+- the full class guide from `BWF_CLASS_INFO`, with search;
+- both studio addresses with Google Maps buttons;
+- phone and email contact details.
+
+The app deliberately has **no links to bewellfit.org**. If the website is down,
+customers can still see the timetable, prices and class descriptions, and send a
+booking request. When prices change, update `BWF_PRICING` and its `updated` date.
 
 ## Versioning and backups
 
@@ -108,7 +127,8 @@ afterwards.
 `BWF_CONFIG` at the top of `data.js` contains:
 
 - `contactEmail` — the address that booking and contact links use.
-- `address`, `mapsUrl`, `siteUrl` — shown on the Info page.
+- `address`, `mapsUrl` — Studio 1, shown on the Info page.
+- `studio2Address`, `studio2MapsUrl` — Studio 2 at Ore Community Centre.
 
 To change where bookings go, edit `contactEmail` and bump the app version.
 

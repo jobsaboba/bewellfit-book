@@ -10,10 +10,77 @@
 window.BWF_UPDATED = "19 November 2026";
 
 window.BWF_CONFIG = {
-  siteUrl: "https://bewellfit.org",
   contactEmail: "bewellfit@gmx.com",
   address: "Bewellfit, Clifton Rd, Hastings TN34 2AA",
-  mapsUrl: "https://maps.google.com/?q=Bewellfit,+Clifton+Rd,+Hastings+TN34+2AA"
+  mapsUrl: "https://maps.google.com/?q=Bewellfit,+Clifton+Rd,+Hastings+TN34+2AA",
+  studio2Address: "Ore Community Centre, Hastings TN35 5BH",
+  studio2MapsUrl: "https://maps.google.com/?q=Ore+Community+Centre,+Hastings+TN35+5BH"
+};
+
+window.BWF_PRICING = {
+  updated: "21 November 2026",
+  memberships: [
+    {
+      name: "Monthly membership",
+      price: "£45",
+      unit: "/ month",
+      desc: "Includes all classes. Unlimited access. No commitment.",
+      featured: true
+    },
+    {
+      name: "Yearly membership",
+      price: "£495",
+      unit: "/ year",
+      desc: "Pay for 11 months and get one month free. Guaranteed booking in advance."
+    }
+  ],
+  passes: [
+    {
+      name: "10-class pass",
+      price: "£50",
+      desc: "Excludes Aerial & Bungee. Use within 6 months."
+    },
+    {
+      name: "10-class pass + Aerial & Bungee",
+      price: "£65",
+      desc: "Includes Aerial and Bungee. Use within 6 months."
+    }
+  ],
+  individualGroups: [
+    {
+      title: "Standard classes",
+      items: [
+        { name: "45-minute class", price: "£6.00" },
+        { name: "30-minute class", price: "£4.50" },
+        { name: "Pay as you go (standard class)", price: "£6.00" }
+      ]
+    },
+    {
+      title: "Chair & Drums Alive",
+      items: [
+        { name: "Chair Rehab", price: "£5.00" },
+        { name: "Chair Aerobics", price: "£5.00" },
+        { name: "Drums Alive (Tue 2pm)", price: "£5.00" },
+        { name: "Drums Alive (Thu 11am)", price: "£5.00" },
+        { name: "Drums Alive (Thu 7:30pm)", price: "£5.50" }
+      ]
+    },
+    {
+      title: "Aerial & Bungee",
+      items: [
+        { name: "Aerial Skills", price: "£8.00" },
+        { name: "Superfly Bungee", price: "£10.00" }
+      ]
+    },
+    {
+      title: "One-to-one & treatments",
+      items: [
+        { name: "One-to-one PT session", price: "£18.00" },
+        { name: "Reflexology session", price: "£18.00" },
+        { name: "PNF stretching", price: "£18.00" }
+      ]
+    }
+  ]
 };
 
 window.BWF_CATEGORIES = [
