@@ -14,7 +14,7 @@ window.BWF_CONFIG = {
   address: "Bewellfit, Clifton Rd, Hastings TN34 2AA",
   mapsUrl: "https://maps.google.com/?q=Bewellfit,+Clifton+Rd,+Hastings+TN34+2AA",
   studio2Address: "Unit 2, Block D, Brook Way, Ivyhouse Lane, Hastings TN35 4NN",
-  studio2MapsUrl: "https://maps.google.com/?q=Unit+2,+Block+D,+Brook+Way,+Ivyhouse+Lane,+Hastings+TN35+4NN"
+  studio2MapsUrl: "https://maps.google.com/?q=Bewellathletic,+8+Brook+Way,+Hastings+TN35+4NN"
 };
 
 window.BWF_PRICING = {

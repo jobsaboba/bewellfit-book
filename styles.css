@@ -1725,6 +1725,23 @@ h1, h2, h3 {
   font-size: 12px;
   line-height: 1.5;
 }
+.studio-photo { margin: 0 0 12px; }
+.studio-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--cream);
+}
+.studio-photo figcaption {
+  margin: 6px 2px 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
 .card .btn-block { margin-top: 4px; }
 .link-list {
   margin-top: 13px;

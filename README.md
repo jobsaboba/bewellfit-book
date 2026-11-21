@@ -58,6 +58,7 @@ booking is never silently lost.
 | `sw.js` | Offline cache |
 | `icons/` | App icons and bee brand mark |
 | `img/hero.webp` | Header photograph |
+| `img/studio-2.webp` | Studio 2 entrance photo |
 | `fonts/` | Self-hosted Montserrat and Nunito |
 
 ## Updating the timetable
@@ -76,7 +77,7 @@ Everything timetable-related lives in `data.js`:
 After editing, bump the app version so installed phones pick up the new data.
 Change the number in these places:
 
-- `CACHE` in `sw.js` (for example `bewellfit-v8`).
+- `CACHE` in `sw.js` (for example `bewellfit-v9`).
 - The `?v=` on `styles.css`, `data.js` and `app.js` in `index.html`.
 - The same three `?v=` entries, plus `manifest.webmanifest?v=`, in the `SHELL`
   list in `sw.js`.
@@ -99,6 +100,8 @@ The Info tab is the single source of truth for customers:
 The app deliberately has **no links to bewellfit.org**. If the website is down,
 customers can still see the timetable, prices and class descriptions, and send a
 booking request. When prices change, update `BWF_PRICING` and its `updated` date.
+The Studio 2 card includes the entrance photo and a direct link to the
+Bewellathletic Google Maps listing.
 
 ## Versioning and backups
 
@@ -128,7 +131,9 @@ afterwards.
 
 - `contactEmail` — the address that booking and contact links use.
 - `address`, `mapsUrl` — Studio 1, shown on the Info page.
-- `studio2Address`, `studio2MapsUrl` — Studio 2 at Unit 2, Block D, Brook Way, Ivyhouse Lane.
+- `studio2Address`, `studio2MapsUrl` — Studio 2 at Unit 2, Block D, Brook Way,
+  Ivyhouse Lane. The maps link searches for the **Bewellathletic** Google Maps
+  listing at 8 Brook Way, so it opens the studio rather than an estate list.
 
 To change where bookings go, edit `contactEmail` and bump the app version.
 
